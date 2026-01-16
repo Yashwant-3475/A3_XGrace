@@ -39,7 +39,7 @@ const LoginPage = () => {
 
 
             // Redirect the user to the dashboard
-            navigate('/');
+            navigate('/dashboard');
         } catch (err) {
             // If the server sent a message, show it. Otherwise show a generic one.
             const message =

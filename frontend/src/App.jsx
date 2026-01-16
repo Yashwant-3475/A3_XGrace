@@ -1,12 +1,13 @@
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
+import HomePage from './pages/HomePage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
 import MockInterviewPage from './pages/MockInterviewPage.jsx';
 import ResumeAnalyzerPage from './pages/ResumeAnalyzerPage.jsx';
 import ProtectedRoute from './components/ProtectedRoute';
-import { FiHome, FiLogOut, FiLogIn, FiUserPlus, FiFileText, FiVideo } from 'react-icons/fi';
+import { FiHome, FiLogOut, FiLogIn, FiUserPlus, FiFileText, FiVideo, FiBarChart2 } from 'react-icons/fi';
 import './App.css';
 
 const Navbar = () => {
@@ -15,16 +16,16 @@ const Navbar = () => {
 
     const handleLogout = () => {
         logout();
-        navigate('/login');
+        navigate('/');
     };
 
     return (
         <nav className="navbar navbar-expand-lg navbar-light bg-light mb-4 sticky-top">
             <div className="container">
-                <a className="navbar-brand d-flex align-items-center" href="/">
+                <Link className="navbar-brand d-flex align-items-center" to="/">
                     <FiHome className="me-2" size={24} />
                     Interview Prep
-                </a>
+                </Link>
 
                 <button
                     className="navbar-toggler"
@@ -39,14 +40,18 @@ const Navbar = () => {
                     <div className="navbar-nav ms-auto align-items-center">
                         {isAuthenticated ? (
                             <>
-                                <a className="nav-link d-flex align-items-center" href="/mock-interview">
+                                <Link className="nav-link d-flex align-items-center" to="/dashboard">
+                                    <FiBarChart2 className="me-1" size={18} />
+                                    Dashboard
+                                </Link>
+                                <Link className="nav-link d-flex align-items-center" to="/mock-interview">
                                     <FiVideo className="me-1" size={18} />
                                     Mock Interview
-                                </a>
-                                <a className="nav-link d-flex align-items-center" href="/resume-analyzer">
+                                </Link>
+                                <Link className="nav-link d-flex align-items-center" to="/resume-analyzer">
                                     <FiFileText className="me-1" size={18} />
                                     Resume Analyzer
-                                </a>
+                                </Link>
                                 <button
                                     className="btn btn-outline-danger ms-2 d-flex align-items-center"
                                     onClick={handleLogout}
@@ -57,14 +62,18 @@ const Navbar = () => {
                             </>
                         ) : (
                             <>
-                                <a className="nav-link d-flex align-items-center" href="/login">
+                                <Link className="nav-link d-flex align-items-center" to="/">
+                                    <FiHome className="me-1" size={18} />
+                                    Home
+                                </Link>
+                                <Link className="nav-link d-flex align-items-center" to="/login">
                                     <FiLogIn className="me-1" size={18} />
                                     Login
-                                </a>
-                                <a className="nav-link d-flex align-items-center" href="/register">
+                                </Link>
+                                <Link className="nav-link d-flex align-items-center" to="/register">
                                     <FiUserPlus className="me-1" size={18} />
                                     Register
-                                </a>
+                                </Link>
                             </>
                         )}
                     </div>
@@ -81,9 +90,17 @@ const App = () => {
             <Navbar />
             <div className="container">
                 <Routes>
-                    <Route path="/" element={<DashboardPage />} />
+                    <Route path="/" element={<HomePage />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
+                    <Route
+                        path="/dashboard"
+                        element={
+                            <ProtectedRoute>
+                                <DashboardPage />
+                            </ProtectedRoute>
+                        }
+                    />
                     <Route
                         path="/mock-interview"
                         element={
