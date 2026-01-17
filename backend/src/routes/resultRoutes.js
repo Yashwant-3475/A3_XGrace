@@ -1,16 +1,15 @@
 const express = require('express');
-const { createResult, getResults } = require('../controllers/resultController');
+const { createResult, getResults, getRecentResults, getHistory } = require('../controllers/resultController');
+const authMiddleware = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-// Save a new result
-// POST /api/results
-router.post('/', createResult);
+router.post('/', authMiddleware, createResult);
 
-// Get all results
-// GET /api/results
-router.get('/', getResults);
+router.get('/', authMiddleware, getResults);
+
+router.get('/recent', authMiddleware, getRecentResults);
+
+router.get('/history', authMiddleware, getHistory);
 
 module.exports = router;
-
-

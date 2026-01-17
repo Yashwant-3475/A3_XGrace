@@ -1,13 +1,9 @@
 const Result = require('../models/Result');
 
-// @route   POST /api/results
-// @desc    Save a new mock interview result
-// @access  Public (for now)
 const createResult = async (req, res) => {
   try {
     const { score, totalQuestions, correctAnswers, attemptedQuestions, accuracy } = req.body;
 
-    // Basic check to make sure required numbers are present
     if (
       score === undefined ||
       totalQuestions === undefined ||
@@ -19,6 +15,7 @@ const createResult = async (req, res) => {
     }
 
     const result = await Result.create({
+      userId: req.user.id,
       score,
       totalQuestions,
       correctAnswers,
@@ -33,12 +30,9 @@ const createResult = async (req, res) => {
   }
 };
 
-// @route   GET /api/results
-// @desc    Get all mock interview results
-// @access  Public (for now)
 const getResults = async (req, res) => {
   try {
-    const results = await Result.find({}).sort({ createdAt: -1 });
+    const results = await Result.find({ userId: req.user.id }).sort({ createdAt: -1 });
     res.json(results);
   } catch (error) {
     console.error('Get results error:', error.message);
@@ -46,9 +40,67 @@ const getResults = async (req, res) => {
   }
 };
 
+const getRecentResults = async (req, res) => {
+  try {
+    const results = await Result.find({ userId: req.user.id })
+      .sort({ createdAt: -1 })
+      .limit(3);
+    res.json(results);
+  } catch (error) {
+    console.error('Get recent results error:', error.message);
+    res.status(500).json({ message: 'Failed to fetch recent results.' });
+  }
+};
+
+const getHistory = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 5;
+
+    if (limit > 5) {
+      limit = 5;
+    }
+
+    const skip = (page - 1) * limit;
+
+    let query = { userId: req.user.id };
+
+    if (req.query.minScore) {
+      query.score = { $gte: parseInt(req.query.minScore) };
+    }
+
+    if (req.query.startDate || req.query.endDate) {
+      query.createdAt = {};
+      if (req.query.startDate) {
+        query.createdAt.$gte = new Date(req.query.startDate);
+      }
+      if (req.query.endDate) {
+        query.createdAt.$lte = new Date(req.query.endDate);
+      }
+    }
+
+    const results = await Result.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const total = await Result.countDocuments(query);
+
+    res.json({
+      results,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+      totalResults: total,
+    });
+  } catch (error) {
+    console.error('Get history error:', error.message);
+    res.status(500).json({ message: 'Failed to fetch history.' });
+  }
+};
+
 module.exports = {
   createResult,
   getResults,
+  getRecentResults,
+  getHistory,
 };
-
-

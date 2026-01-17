@@ -6,6 +6,7 @@ import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
 import MockInterviewPage from './pages/MockInterviewPage.jsx';
 import ResumeAnalyzerPage from './pages/ResumeAnalyzerPage.jsx';
+import HistoryPage from './pages/HistoryPage.jsx';
 import ProtectedRoute from './components/ProtectedRoute';
 import { FiHome, FiLogOut, FiLogIn, FiUserPlus, FiFileText, FiVideo, FiBarChart2 } from 'react-icons/fi';
 import './App.css';
@@ -98,6 +99,14 @@ const App = () => {
                         element={
                             <ProtectedRoute>
                                 <DashboardPage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/history"
+                        element={
+                            <ProtectedRoute>
+                                <HistoryPage />
                             </ProtectedRoute>
                         }
                     />

@@ -1,13 +1,11 @@
 const mongoose = require('mongoose');
 
-// Result model to store performance of a mock interview attempt
 const resultSchema = new mongoose.Schema(
   {
-    // Optional reference to a user (not required for now)
-    user: {
+    userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: false,
+      required: true,
     },
     score: {
       type: Number,
@@ -26,17 +24,16 @@ const resultSchema = new mongoose.Schema(
       required: true,
     },
     accuracy: {
-      type: Number, // store percentage value, e.g. 80 for 80%
+      type: Number,
       required: true,
     },
   },
   {
-    timestamps: true, // createdAt will act as interview date/time
+    timestamps: true,
   }
 );
 
 const Result = mongoose.model('Result', resultSchema);
 
 module.exports = Result;
-
 

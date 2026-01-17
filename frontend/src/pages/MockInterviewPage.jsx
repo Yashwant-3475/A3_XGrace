@@ -11,6 +11,22 @@ const MockInterviewPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [submitting, setSubmitting] = useState(false);
+    const [userAnswers, setUserAnswers] = useState({});
+    const [currentAnswer, setCurrentAnswer] = useState('');
+
+    // Predefined correct answers/keywords for each question
+    const questionKeywords = {
+        0: ['react', 'library', 'javascript', 'ui', 'component'],
+        1: ['virtual dom', 'performance', 'reconciliation', 'diffing'],
+        2: ['state', 'data', 'component', 'mutable', 'setstate'],
+        3: ['props', 'properties', 'parent', 'child', 'immutable'],
+        4: ['useeffect', 'side effects', 'lifecycle', 'hook'],
+        5: ['usestate', 'state', 'hook', 'functional component'],
+        6: ['jsx', 'javascript xml', 'syntax', 'extension'],
+        7: ['component', 'reusable', 'independent', 'building block'],
+        8: ['key', 'unique', 'identifier', 'list', 'reconciliation'],
+        9: ['event handling', 'onclick', 'onchange', 'synthetic events']
+    };
 
     // Fetch interview questions
     useEffect(() => {
@@ -31,23 +47,78 @@ const MockInterviewPage = () => {
         fetchQuestions();
     }, []);
 
+    // Load saved answer when changing questions
+    useEffect(() => {
+        setCurrentAnswer(userAnswers[currentIndex] || '');
+    }, [currentIndex, userAnswers]);
+
+    const handleAnswerChange = (e) => {
+        setCurrentAnswer(e.target.value);
+    };
+
     const handleNext = () => {
+        // Save current answer
+        setUserAnswers((prev) => ({
+            ...prev,
+            [currentIndex]: currentAnswer
+        }));
+
+        // Move to next question
         if (currentIndex < questions.length - 1) {
             setCurrentIndex((prev) => prev + 1);
         }
+    };
+
+    const checkAnswer = (questionIndex, answer) => {
+        // Get keywords for this question
+        const keywords = questionKeywords[questionIndex] || [];
+
+        // Convert answer to lowercase for case-insensitive matching
+        const lowerAnswer = answer.toLowerCase();
+
+        // Check if answer contains any of the keywords
+        const hasKeyword = keywords.some(keyword =>
+            lowerAnswer.includes(keyword.toLowerCase())
+        );
+
+        return hasKeyword;
     };
 
     const handleFinishInterview = async () => {
         try {
             setSubmitting(true);
 
+            // Save final answer
+            const finalAnswers = {
+                ...userAnswers,
+                [currentIndex]: currentAnswer
+            };
+
+            // Calculate results
             const totalQuestions = questions.length;
-            const attemptedQuestions = questions.length;
-            const correctAnswers = questions.length; // TEMP (logic later)
+            let correctAnswers = 0;
+            let attemptedQuestions = 0;
+
+            // Check each answer
+            for (let i = 0; i < totalQuestions; i++) {
+                const answer = finalAnswers[i] || '';
+
+                if (answer.trim() !== '') {
+                    attemptedQuestions++;
+
+                    // Check if answer is correct based on keywords
+                    if (checkAnswer(i, answer)) {
+                        correctAnswers++;
+                    }
+                }
+            }
+
             const score = correctAnswers;
-            const accuracy = Math.round(
-                (correctAnswers / totalQuestions) * 100
-            );
+            const accuracy = totalQuestions > 0
+                ? Math.round((correctAnswers / totalQuestions) * 100)
+                : 0;
+
+            const token = localStorage.getItem('authToken');
 
             await axios.post('http://localhost:5000/api/results', {
                 score,
@@ -55,10 +126,14 @@ const MockInterviewPage = () => {
                 correctAnswers,
                 attemptedQuestions,
                 accuracy,
+            }, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
             });
 
             // Redirect to dashboard after saving
-            navigate('/');
+            navigate('/dashboard');
         } catch (err) {
             console.error('Failed to save result:', err);
             alert('Failed to save interview result.');
@@ -99,6 +174,7 @@ const MockInterviewPage = () => {
     const isLastQuestion = currentIndex === questions.length - 1;
     const currentQuestion = questions[currentIndex];
     const progress = ((currentIndex + 1) / questions.length) * 100;
+    const isAnswerEmpty = currentAnswer.trim() === '';
 
     return (
         <div className="container mt-4">
@@ -147,11 +223,32 @@ const MockInterviewPage = () => {
                                 </div>
                             </div>
 
+                            {/* Answer textarea */}
+                            <div className="mt-4">
+                                <label htmlFor="answer" className="form-label fw-semibold">
+                                    Your Answer:
+                                </label>
+                                <textarea
+                                    id="answer"
+                                    className="form-control"
+                                    rows="6"
+                                    placeholder="Type your answer here..."
+                                    value={currentAnswer}
+                                    onChange={handleAnswerChange}
+                                    style={{
+                                        resize: 'vertical',
+                                        fontSize: '0.95rem',
+                                        lineHeight: '1.6'
+                                    }}
+                                ></textarea>
+                            </div>
+
                             <div className="d-flex justify-content-end mt-5 pt-4 border-top">
                                 {!isLastQuestion ? (
                                     <button
                                         className="btn btn-primary btn-lg d-flex align-items-center"
                                         onClick={handleNext}
+                                        disabled={isAnswerEmpty}
                                     >
                                         Next Question
                                         <FiArrowRight className="ms-2" size={20} />
@@ -160,7 +257,7 @@ const MockInterviewPage = () => {
                                     <button
                                         className="btn btn-success btn-lg d-flex align-items-center"
                                         onClick={handleFinishInterview}
-                                        disabled={submitting}
+                                        disabled={submitting || isAnswerEmpty}
                                     >
                                         {submitting ? (
                                             <>
