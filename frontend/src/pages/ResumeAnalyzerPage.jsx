@@ -57,7 +57,7 @@ const ResumeAnalyzerPage = () => {
             <div className="col-md-10 col-lg-9">
                 <div className="text-center mb-4">
                     <div className="d-inline-block p-3 rounded-circle mb-3"
-                        style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+                        style={{ background: 'var(--primary-color)' }}>
                         <FiFileText size={32} color="white" />
                     </div>
                     <h2 className="fw-bold gradient-text">Resume Analyzer</h2>
@@ -128,7 +128,7 @@ const ResumeAnalyzerPage = () => {
                             <div className="col-md-6 mb-4">
                                 <div className="card border-0 shadow">
                                     <div className="card-header text-white"
-                                        style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}>
+                                        style={{ background: 'var(--primary-color)' }}>
                                         <h5 className="mb-0 d-flex align-items-center">
                                             <FiCheckCircle className="me-2" />
                                             Matched Skills
@@ -165,7 +165,7 @@ const ResumeAnalyzerPage = () => {
                             <div className="col-md-6 mb-4">
                                 <div className="card border-0 shadow">
                                     <div className="card-header text-white"
-                                        style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)' }}>
+                                        style={{ background: 'var(--secondary-color)' }}>
                                         <h5 className="mb-0 d-flex align-items-center">
                                             <FiXCircle className="me-2" />
                                             Missing Skills

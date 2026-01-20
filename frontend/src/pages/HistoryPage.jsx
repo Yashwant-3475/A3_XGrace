@@ -209,10 +209,10 @@ const HistoryPage = () => {
                                         <div className="row g-3">
                                             <div className="col-6">
                                                 <div className="d-flex align-items-center">
-                                                    <FiTrendingUp className="me-2" style={{ color: '#667eea' }} />
+                                                    <FiTrendingUp className="me-2" style={{ color: 'var(--primary-color)' }} />
                                                     <div>
                                                         <small className="text-muted d-block">Score</small>
-                                                        <strong style={{ color: '#667eea' }}>
+                                                        <strong style={{ color: 'var(--primary-color)' }}>
                                                             {result.score}/{result.totalQuestions}
                                                         </strong>
                                                     </div>
@@ -221,10 +221,10 @@ const HistoryPage = () => {
 
                                             <div className="col-6">
                                                 <div className="d-flex align-items-center">
-                                                    <FiTarget className="me-2" style={{ color: '#10b981' }} />
+                                                    <FiTarget className="me-2" style={{ color: 'var(--secondary-color)' }} />
                                                     <div>
                                                         <small className="text-muted d-block">Accuracy</small>
-                                                        <strong style={{ color: '#10b981' }}>{result.accuracy}%</strong>
+                                                        <strong style={{ color: 'var(--primary-color)' }}>{result.accuracy}%</strong>
                                                     </div>
                                                 </div>
                                             </div>

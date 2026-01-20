@@ -182,7 +182,7 @@ const MockInterviewPage = () => {
                 <div className="col-md-9 col-lg-8">
                     <div className="text-center mb-4">
                         <div className="d-inline-block p-3 rounded-circle mb-3"
-                            style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+                            style={{ background: 'var(--primary-color)' }}>
                             <FiVideo size={32} color="white" />
                         </div>
                         <h2 className="fw-bold gradient-text">Mock Interview</h2>
@@ -211,7 +211,7 @@ const MockInterviewPage = () => {
                                         style={{
                                             width: '40px',
                                             height: '40px',
-                                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                                            background: 'var(--primary-color)'
                                         }}>
                                         <span className="text-white fw-bold">Q</span>
                                     </div>

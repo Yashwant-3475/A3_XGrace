@@ -31,8 +31,8 @@
 }
 
 .card-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: var(--primary-color);
+  color: var(--light-color);
   border: none;
   padding: 1.25rem 1.5rem;
   font-weight: 600;
@@ -62,21 +62,23 @@
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--primary-color);
   border: none;
+  color: var(--light-color);
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, #5568d3 0%, #6a3f91 100%);
+  background: var(--secondary-color);
 }
 
 .btn-success {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: var(--primary-color);
   border: none;
+  color: var(--light-color);
 }
 
 .btn-success:hover {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  background: var(--secondary-color);
 }
 
 .btn-danger {
@@ -113,14 +115,14 @@
 
 .form-control:focus,
 .form-select:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(111, 45, 189, 0.1);
   outline: none;
 }
 
 .form-label {
   font-weight: 500;
-  color: #374151;
+  color: var(--dark-color);
   margin-bottom: 0.5rem;
 }
 
@@ -167,27 +169,26 @@
 
 /* Navbar enhancements */
 .navbar {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
   padding: 1rem 0;
-  backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.95) !important;
+  background: var(--light-color) !important;
   transition: all 0.3s ease;
 }
 
 .navbar-brand {
   font-weight: 700;
   font-size: 1.4rem;
-  color: #667eea !important;
+  color: var(--primary-color) !important;
   transition: all 0.3s ease;
 }
 
 .navbar-brand:hover {
-  color: #764ba2 !important;
+  color: var(--secondary-color) !important;
 }
 
 .nav-link {
   font-weight: 500;
-  color: #4b5563 !important;
+  color: var(--dark-color) !important;
   padding: 0.5rem 1rem !important;
   margin: 0 0.25rem;
   border-radius: 6px;
@@ -195,8 +196,8 @@
 }
 
 .nav-link:hover {
-  color: #667eea !important;
-  background: rgba(102, 126, 234, 0.1);
+  color: var(--primary-color) !important;
+  background: rgba(111, 45, 189, 0.08);
 }
 
 /* Loading spinner enhancement */
@@ -221,7 +222,7 @@
   padding: 1.5rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
   transition: all 0.3s ease;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid var(--secondary-color);
 }
 
 .stat-card:hover {
@@ -244,7 +245,7 @@
 
 /* Gradient text */
 .gradient-text {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -293,6 +294,6 @@
 }
 
 .progress-bar {
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  background: var(--primary-color);
   border-radius: 10px;
 }

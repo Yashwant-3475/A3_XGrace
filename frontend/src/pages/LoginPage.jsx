@@ -57,7 +57,7 @@ const LoginPage = () => {
                     <div className="card-body p-5">
                         <div className="text-center mb-4">
                             <div className="d-inline-block p-3 rounded-circle mb-3"
-                                style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+                                style={{ background: 'var(--primary-color)' }}>
                                 <FiLock size={32} color="white" />
                             </div>
                             <h2 className="fw-bold gradient-text">Welcome Back</h2>
@@ -116,7 +116,7 @@ const LoginPage = () => {
                         <div className="text-center mt-4">
                             <p className="text-muted mb-0">
                                 Don't have an account?{' '}
-                                <a href="/register" className="fw-semibold" style={{ color: '#667eea', textDecoration: 'none' }}>
+                                <a href="/register" className="fw-semibold" style={{ color: 'var(--primary-color)', textDecoration: 'none' }}>
                                     Sign up
                                 </a>
                             </p>

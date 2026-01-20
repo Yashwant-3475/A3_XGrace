@@ -159,60 +159,60 @@ const DashboardPage = () => {
             <div className="d-flex align-items-center justify-content-between">
               <div>
                 <h6 className="text-muted mb-1 fw-semibold">Recent Interviews</h6>
-                <h2 className="mb-0 fw-bold" style={{ color: '#667eea' }}>
+                <h2 className="mb-0 fw-bold" style={{ color: 'var(--primary-color)' }}>
                   {totalInterviews}
                 </h2>
               </div>
               <div>
-                <FiVideo size={36} style={{ color: '#667eea', opacity: 0.6 }} />
+                <FiVideo size={36} style={{ color: 'var(--primary-color)', opacity: 0.6 }} />
               </div>
             </div>
           </div>
         </div>
 
         <div className="col-md-3 col-sm-6 mb-3">
-          <div className="card stat-card" style={{ borderLeftColor: '#10b981' }}>
+          <div className="card stat-card" style={{ borderLeftColor: 'var(--secondary-color)' }}>
             <div className="d-flex align-items-center justify-content-between">
               <div>
                 <h6 className="text-muted mb-1 fw-semibold">Avg Accuracy</h6>
-                <h2 className="mb-0 fw-bold" style={{ color: '#10b981' }}>
+                <h2 className="mb-0 fw-bold" style={{ color: 'var(--primary-color)' }}>
                   {averageAccuracy}%
                 </h2>
               </div>
               <div>
-                <FiTarget size={36} style={{ color: '#10b981', opacity: 0.6 }} />
+                <FiTarget size={36} style={{ color: 'var(--primary-color)', opacity: 0.6 }} />
               </div>
             </div>
           </div>
         </div>
 
         <div className="col-md-3 col-sm-6 mb-3">
-          <div className="card stat-card" style={{ borderLeftColor: '#f59e0b' }}>
+          <div className="card stat-card" style={{ borderLeftColor: 'var(--primary-color)' }}>
             <div className="d-flex align-items-center justify-content-between">
               <div>
                 <h6 className="text-muted mb-1 fw-semibold">Best Score</h6>
-                <h2 className="mb-0 fw-bold" style={{ color: '#f59e0b' }}>
+                <h2 className="mb-0 fw-bold" style={{ color: 'var(--primary-color)' }}>
                   {bestScore}
                 </h2>
               </div>
               <div>
-                <FiAward size={36} style={{ color: '#f59e0b', opacity: 0.6 }} />
+                <FiAward size={36} style={{ color: 'var(--primary-color)', opacity: 0.6 }} />
               </div>
             </div>
           </div>
         </div>
 
         <div className="col-md-3 col-sm-6 mb-3">
-          <div className="card stat-card" style={{ borderLeftColor: '#8b5cf6' }}>
+          <div className="card stat-card" style={{ borderLeftColor: 'var(--secondary-color)' }}>
             <div className="d-flex align-items-center justify-content-between">
               <div>
                 <h6 className="text-muted mb-1 fw-semibold">Last Interview</h6>
-                <p className="mb-0 fw-bold" style={{ color: '#8b5cf6', fontSize: '0.9rem' }}>
+                <p className="mb-0 fw-bold" style={{ color: 'var(--dark-color)', fontSize: '0.9rem' }}>
                   {lastInterviewDate}
                 </p>
               </div>
               <div>
-                <FiCalendar size={36} style={{ color: '#8b5cf6', opacity: 0.6 }} />
+                <FiCalendar size={36} style={{ color: 'var(--secondary-color)', opacity: 0.6 }} />
               </div>
             </div>
           </div>
@@ -222,7 +222,7 @@ const DashboardPage = () => {
       <div className="card mb-4">
         <div className="card-body">
           <h5 className="card-title mb-4 fw-bold d-flex align-items-center">
-            <FiTrendingUp className="me-2" style={{ color: '#667eea' }} />
+            <FiTrendingUp className="me-2" style={{ color: 'var(--primary-color)' }} />
             Interview Score Trend
           </h5>
           <div style={{ width: '100%', height: 300 }}>
@@ -242,10 +242,10 @@ const DashboardPage = () => {
                 <Line
                   type="monotone"
                   dataKey="score"
-                  stroke="#667eea"
+                  stroke="var(--primary-color)"
                   strokeWidth={3}
                   name="Score"
-                  dot={{ fill: '#667eea', r: 5 }}
+                  dot={{ fill: 'var(--primary-color)', r: 5 }}
                   activeDot={{ r: 7 }}
                 />
               </LineChart>

@@ -60,7 +60,7 @@ const RegisterPage = () => {
                     <div className="card-body p-5">
                         <div className="text-center mb-4">
                             <div className="d-inline-block p-3 rounded-circle mb-3"
-                                style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}>
+                                style={{ background: 'var(--primary-color)' }}>
                                 <FiUserPlus size={32} color="white" />
                             </div>
                             <h2 className="fw-bold gradient-text">Create Account</h2>
@@ -133,7 +133,7 @@ const RegisterPage = () => {
                         <div className="text-center mt-4">
                             <p className="text-muted mb-0">
                                 Already have an account?{' '}
-                                <a href="/login" className="fw-semibold" style={{ color: '#667eea', textDecoration: 'none' }}>
+                                <a href="/login" className="fw-semibold" style={{ color: 'var(--primary-color)', textDecoration: 'none' }}>
                                     Sign in
                                 </a>
                             </p>

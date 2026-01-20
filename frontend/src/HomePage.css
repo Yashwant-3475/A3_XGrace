@@ -1,14 +1,14 @@
 /* HomePage Styles */
 .home-page {
     min-height: calc(100vh - 80px);
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    background: var(--light-color);
 }
 
 /* Hero Section */
 .hero-section {
     padding: 5rem 2rem;
     text-align: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--primary-color);
     color: white;
     min-height: 60vh;
     display: flex;
@@ -72,7 +72,7 @@
 
 .btn-outline-primary:hover {
     background: white;
-    color: #667eea;
+    color: var(--primary-color);
     border-color: white;
     transform: translateY(-3px);
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
@@ -89,7 +89,7 @@
     font-size: 2.5rem;
     font-weight: 700;
     margin-bottom: 3rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -107,15 +107,15 @@
 
 .feature-card:hover {
     transform: translateY(-8px);
-    box-shadow: 0 12px 40px rgba(102, 126, 234, 0.15);
-    border-color: #667eea;
+    box-shadow: 0 12px 40px rgba(111, 45, 189, 0.15);
+    border-color: var(--primary-color);
 }
 
 .feature-icon-wrapper {
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--primary-color);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -135,7 +135,7 @@
     font-size: 1.5rem;
     font-weight: 700;
     margin-bottom: 1rem;
-    color: #1f2937;
+    color: var(--dark-color);
 }
 
 .feature-description {
@@ -169,7 +169,7 @@
 /* CTA Section */
 .cta-section {
     padding: 5rem 2rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--primary-color);
     text-align: center;
     color: white;
 }
@@ -207,7 +207,7 @@
 
 .btn-light:hover {
     background: #f8f9fa;
-    color: #764ba2;
+    color: var(--primary-color);
     transform: translateY(-3px);
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
