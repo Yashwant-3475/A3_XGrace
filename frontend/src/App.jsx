@@ -25,7 +25,7 @@ const Navbar = () => {
             <div className="container">
                 <Link className="navbar-brand d-flex align-items-center" to="/">
                     <FiHome className="me-2" size={24} />
-                    Interview Prep
+                    Interview Preparation
                 </Link>
 
                 <button

@@ -7,12 +7,10 @@ const ProtectedRoute = ({ children }) => {
   const location = useLocation();
 
   if (isLoading) {
-    // Optional: Show a loading spinner or skeleton while checking auth
     return <div>Loading...</div>;
   }
 
   if (!isAuthenticated) {
-    // Redirect to /login, but save the current location they were trying to go to
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
