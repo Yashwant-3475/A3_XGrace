@@ -4,7 +4,6 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { FiLock, FiMail, FiLogIn } from 'react-icons/fi';
 
-// Simple login page that talks to the backend API.
 // It sends email/password, stores the JWT on success, and redirects to the dashboard.
 const LoginPage = () => {
     const navigate = useNavigate();

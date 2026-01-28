@@ -11,7 +11,7 @@ const resumeRoutes = require('./routes/resumeRoutes');
 const interviewRoutes = require('./routes/interviewRoutes');
 const app = express();
 
-// Connect to MongoDB (uses MONGODB_URI from .env)
+// Connect to MongoDB
 connectDB();
 
 // Enable CORS so the React frontend (usually on port 3000) can call the API
