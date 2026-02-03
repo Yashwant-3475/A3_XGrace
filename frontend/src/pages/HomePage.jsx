@@ -1,110 +1,97 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiVideo, FiFileText, FiArrowRight, FiCheckCircle } from 'react-icons/fi';
+import { FiVideo, FiFileText, FiArrowRight, FiTrendingUp, FiClock } from 'react-icons/fi';
 import '../HomePage.css';
 
-// Public Landing Page for non-logged-in users
-// Displays platform features and CTAs to login or register
 const HomePage = () => {
     const navigate = useNavigate();
 
     return (
         <div className="home-page">
-            {/* Hero Section */}
             <section className="hero-section">
                 <div className="hero-content">
                     <h1 className="hero-title">
-                        AI Interview Prep Platform
+                        Ace Your Next Interview with AI
                     </h1>
                     <p className="hero-subtitle">
-                        Master your interviews with AI-powered mock interviews and intelligent resume analysis
+                        Practice smarter with AI-powered mock interviews, intelligent resume analysis, and real-time performance tracking
                     </p>
                     <div className="hero-cta">
                         <button
                             className="btn btn-primary btn-lg cta-button"
-                            onClick={() => navigate('/login')}
+                            onClick={() => navigate('/register')}
                         >
-                            Login
+                            Get Started
                             <FiArrowRight className="ms-2" />
                         </button>
                         <button
                             className="btn btn-outline-primary btn-lg cta-button"
-                            onClick={() => navigate('/register')}
+                            onClick={() => navigate('/login')}
                         >
-                            Get Started
+                            Login
                         </button>
                     </div>
                 </div>
             </section>
 
-            {/* Features Section */}
             <section className="features-section">
                 <div className="container">
-                    <h2 className="features-title">What We Offer</h2>
+                    <h2 className="features-title">Everything You Need to Succeed</h2>
                     <div className="row g-4">
-                        {/* Mock Interview Feature */}
-                        <div className="col-md-6">
+                        <div className="col-md-6 col-lg-3">
                             <div className="feature-card">
                                 <div className="feature-icon-wrapper">
-                                    <FiVideo className="feature-icon" size={40} />
+                                    <FiVideo className="feature-icon" />
                                 </div>
                                 <h3 className="feature-heading">AI Mock Interviews</h3>
                                 <p className="feature-description">
-                                    Practice with AI-powered mock interviews tailored to your target role.
-                                    Get real-time feedback, improve your answers, and track your progress.
+                                    Practice with personalized AI interviews and get instant feedback
                                 </p>
-                                <ul className="feature-list">
-                                    <li>
-                                        <FiCheckCircle className="check-icon" />
-                                        Personalized interview questions
-                                    </li>
-                                    <li>
-                                        <FiCheckCircle className="check-icon" />
-                                        Real-time AI feedback
-                                    </li>
-                                    <li>
-                                        <FiCheckCircle className="check-icon" />
-                                        Performance analytics
-                                    </li>
-                                </ul>
                             </div>
                         </div>
 
-                        {/* Resume Analyzer Feature */}
-                        <div className="col-md-6">
+                        <div className="col-md-6 col-lg-3">
                             <div className="feature-card">
                                 <div className="feature-icon-wrapper">
-                                    <FiFileText className="feature-icon" size={40} />
+                                    <FiFileText className="feature-icon" />
                                 </div>
                                 <h3 className="feature-heading">Resume Analyzer</h3>
                                 <p className="feature-description">
-                                    Upload your resume and get instant AI-powered insights.
-                                    Optimize your resume with intelligent suggestions and industry best practices.
+                                    Optimize your resume with AI-powered insights and recommendations
                                 </p>
-                                <ul className="feature-list">
-                                    <li>
-                                        <FiCheckCircle className="check-icon" />
-                                        ATS compatibility check
-                                    </li>
-                                    <li>
-                                        <FiCheckCircle className="check-icon" />
-                                        Keyword optimization
-                                    </li>
-                                    <li>
-                                        <FiCheckCircle className="check-icon" />
-                                        Actionable recommendations
-                                    </li>
-                                </ul>
+                            </div>
+                        </div>
+
+                        <div className="col-md-6 col-lg-3">
+                            <div className="feature-card">
+                                <div className="feature-icon-wrapper">
+                                    <FiTrendingUp className="feature-icon" />
+                                </div>
+                                <h3 className="feature-heading">Performance Tracking</h3>
+                                <p className="feature-description">
+                                    Monitor your progress with detailed analytics and improvement metrics
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="col-md-6 col-lg-3">
+                            <div className="feature-card">
+                                <div className="feature-icon-wrapper">
+                                    <FiClock className="feature-icon" />
+                                </div>
+                                <h3 className="feature-heading">Interview History</h3>
+                                <p className="feature-description">
+                                    Review past sessions and track your improvement over time
+                                </p>
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* Call-to-Action Section */}
             <section className="cta-section">
                 <div className="cta-content">
-                    <h2 className="cta-title">Ready to ace your next interview?</h2>
+                    <h2 className="cta-title">Ready to Ace Your Next Interview?</h2>
                     <p className="cta-text">Join hundreds of students preparing for their dream jobs</p>
                     <button
                         className="btn btn-light btn-lg"
