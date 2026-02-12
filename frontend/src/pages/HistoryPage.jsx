@@ -29,7 +29,7 @@ const HistoryPage = () => {
                 return;
             }
 
-            let url = `http://localhost:5000/api/results/history?page=${page}&limit=5`;
+            let url = `http://localhost:5000/api/interview/history?page=${page}&limit=5`;
 
             if (filters.minScore) {
                 url += `&minScore=${filters.minScore}`;
@@ -47,10 +47,23 @@ const HistoryPage = () => {
                 },
             });
 
-            setResults(response.data.results || []);
-            setCurrentPage(response.data.currentPage);
+            // Transform new session data to match UI format
+            const transformedResults = (response.data.interviews || []).map(interview => ({
+                _id: interview.sessionId,
+                score: interview.score,
+                totalQuestions: interview.totalQuestions,
+                accuracy: interview.percentage,
+                attemptedQuestions: interview.totalQuestions,
+                correctAnswers: interview.score,
+                createdAt: interview.createdAt,
+                role: interview.role,
+                skillLevel: interview.skillLevel,
+            }));
+
+            setResults(transformedResults);
+            setCurrentPage(response.data.page);
             setTotalPages(response.data.totalPages);
-            setTotalResults(response.data.totalResults);
+            setTotalResults(response.data.totalItems);
             setError('');
         } catch (err) {
             console.error('Error fetching history:', err);

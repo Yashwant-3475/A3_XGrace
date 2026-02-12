@@ -7,6 +7,10 @@ import RegisterPage from './pages/RegisterPage.jsx';
 import MockInterviewPage from './pages/MockInterviewPage.jsx';
 import ResumeAnalyzerPage from './pages/ResumeAnalyzerPage.jsx';
 import HistoryPage from './pages/HistoryPage.jsx';
+import InterviewRolePage from './pages/InterviewRolePage.jsx';
+import InterviewPage from './pages/InterviewPage.jsx';
+import InterviewResultPage from './pages/InterviewResultPage.jsx';
+import InterviewReportPage from './pages/InterviewReportPage.jsx';
 import ProtectedRoute from './components/ProtectedRoute';
 import { FiHome, FiLogOut, FiLogIn, FiUserPlus, FiFileText, FiVideo, FiBarChart2 } from 'react-icons/fi';
 import './App.css';
@@ -45,7 +49,7 @@ const Navbar = () => {
                                     <FiBarChart2 className="me-1" size={18} />
                                     Dashboard
                                 </Link>
-                                <Link className="nav-link d-flex align-items-center" to="/mock-interview">
+                                <Link className="nav-link d-flex align-items-center" to="/interview">
                                     <FiVideo className="me-1" size={18} />
                                     Mock Interview
                                 </Link>
@@ -123,6 +127,38 @@ const App = () => {
                         element={
                             <ProtectedRoute>
                                 <ResumeAnalyzerPage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/interview"
+                        element={
+                            <ProtectedRoute>
+                                <InterviewRolePage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/interview/start"
+                        element={
+                            <ProtectedRoute>
+                                <InterviewPage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/interview/result"
+                        element={
+                            <ProtectedRoute>
+                                <InterviewResultPage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/interview/report"
+                        element={
+                            <ProtectedRoute>
+                                <InterviewReportPage />
                             </ProtectedRoute>
                         }
                     />

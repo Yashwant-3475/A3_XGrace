@@ -22,6 +22,20 @@ const questionSchema = new mongoose.Schema(
       type: String,
       default: 'easy',
     },
+    // Role for which this question is relevant (frontend, backend, mern, hr, aptitude)
+    role: {
+      type: String,
+      required: true,
+    },
+    // Category of the question (technical, hr, aptitude)
+    category: {
+      type: String,
+      required: true,
+    },
+    // Optional explanation for the correct answer
+    explanation: {
+      type: String,
+    },
   },
   {
     timestamps: true,

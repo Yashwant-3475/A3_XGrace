@@ -14,6 +14,9 @@ const app = express();
 // Connect to MongoDB
 connectDB();
 
+// Auto-seed questions on startup (only if collection is empty)
+require('./seed/seedQuestions')();
+
 // Enable CORS so the React frontend (usually on port 3000) can call the API
 app.use(cors());
 

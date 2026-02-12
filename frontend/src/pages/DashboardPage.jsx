@@ -32,13 +32,24 @@ const DashboardPage = () => {
           return;
         }
 
-        const response = await axios.get('http://localhost:5000/api/results/recent', {
+        // Use new interview session endpoint
+        const response = await axios.get('http://localhost:5000/api/interview/recent', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        setResults(response.data || []);
+        // Transform data to match dashboard format
+        const transformedResults = (response.data || []).map(session => ({
+          score: session.score,
+          totalQuestions: session.totalQuestions,
+          accuracy: session.percentage,
+          createdAt: session.createdAt,
+          role: session.role,
+          skillLevel: session.skillLevel,
+        }));
+
+        setResults(transformedResults);
         setError('');
       } catch (err) {
         console.error('Error fetching results:', err);
@@ -82,7 +93,7 @@ const DashboardPage = () => {
         <div className="d-flex justify-content-center gap-3 mt-4 flex-wrap">
           <button
             className="btn btn-success btn-lg d-flex align-items-center"
-            onClick={() => navigate('/mock-interview')}
+            onClick={() => navigate('/interview')}
           >
             <FiVideo className="me-2" size={20} />
             Start Mock Interview
