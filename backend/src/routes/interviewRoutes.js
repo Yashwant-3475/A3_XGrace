@@ -4,10 +4,10 @@ const { startInterview, submitInterview, getRecentInterviews, getInterviewHistor
 const authMiddleware = require('../middleware/authMiddleware');
 
 // POST /api/interview/start - Start a new interview session
-router.post('/start', startInterview);
+router.post('/start', authMiddleware, startInterview);
 
 // POST /api/interview/submit - Submit interview answers and get results
-router.post('/submit', submitInterview);
+router.post('/submit', authMiddleware, submitInterview);
 
 // GET /api/interview/recent - Get recent completed interview sessions (requires auth)
 router.get('/recent', authMiddleware, getRecentInterviews);

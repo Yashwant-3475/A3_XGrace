@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api';
 import { FiCode, FiServer, FiLayers, FiUsers, FiBriefcase, FiArrowRight, FiCheckCircle } from 'react-icons/fi';
 
 const InterviewRolePage = () => {
@@ -59,7 +59,7 @@ const InterviewRolePage = () => {
             setLoading(true);
             setError('');
 
-            const response = await axios.post('http://localhost:5000/api/interview/start', {
+            const response = await api.post('/interview/start', {
                 role: selectedRole,
                 difficulty: difficulty
             });
@@ -204,8 +204,8 @@ const InterviewRolePage = () => {
                                             <div key={level.value} className="col-md-4">
                                                 <div
                                                     className={`card h-100 border-2 ${difficulty === level.value
-                                                            ? 'border-primary'
-                                                            : 'border-light'
+                                                        ? 'border-primary'
+                                                        : 'border-light'
                                                         }`}
                                                     style={{
                                                         cursor: 'pointer',

@@ -6,7 +6,7 @@ const interviewSessionSchema = new mongoose.Schema(
     {
         userId: {
             type: String,
-            required: false,
+            required: true, // Required for data isolation
         },
         role: {
             type: String,

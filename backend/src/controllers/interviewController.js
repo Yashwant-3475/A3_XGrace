@@ -55,6 +55,7 @@ const startInterview = async (req, res) => {
 
     // Create interview session
     const session = new InterviewSession({
+      userId: req.user.id, // Link session to authenticated user
       role: role,
       difficulty: difficulty || 'mixed', // Store difficulty in session
       questions: randomQuestions.map(q => ({
@@ -110,6 +111,14 @@ const submitInterview = async (req, res) => {
     const session = await InterviewSession.findById(sessionId);
     if (!session) {
       return res.status(404).json({ message: 'Interview session not found' });
+    }
+
+    // Verify ownership - only allow user to submit their own sessions
+    // For sessions with userId, ensure it matches the authenticated user
+    if (session.userId && session.userId.toString() !== req.user.id) {
+      return res.status(403).json({
+        message: 'Access denied. You can only submit your own interview sessions.'
+      });
     }
 
     // Check if already completed
@@ -239,8 +248,11 @@ const submitInterview = async (req, res) => {
 // Fetches completed sessions with evaluation data
 const getRecentInterviews = async (req, res) => {
   try {
-    // Fetch 5 most recent completed sessions
-    const sessions = await InterviewSession.find({ status: 'completed' })
+    // Fetch 5 most recent completed sessions for authenticated user only
+    const sessions = await InterviewSession.find({
+      status: 'completed',
+      userId: req.user.id // Filter by authenticated user
+    })
       .sort({ createdAt: -1 })
       .limit(5)
       .lean();
@@ -292,8 +304,11 @@ const getInterviewHistory = async (req, res) => {
     const limit = parseInt(req.query.limit) || 5;
     const skip = (page - 1) * limit;
 
-    // Build filter query
-    const filter = { status: 'completed' };
+    // Build filter query - only show authenticated user's sessions
+    const filter = {
+      status: 'completed',
+      userId: req.user.id // Filter by authenticated user
+    };
 
     // Apply score filter if provided
     if (req.query.minScore) {

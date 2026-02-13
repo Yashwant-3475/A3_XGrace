@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../api';
 import { FiFileText, FiUpload, FiCheckCircle, FiXCircle, FiAlertCircle } from 'react-icons/fi';
 
 const ResumeAnalyzerPage = () => {
@@ -29,15 +29,11 @@ const ResumeAnalyzerPage = () => {
 
         setLoading(true);
         try {
-            const response = await axios.post(
-                'http://localhost:5000/api/resume/analyze',
-                formData,
-                {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    },
-                }
-            );
+            const response = await api.post('/resume/analyze', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
 
             if (response.data.status === 'success') {
                 setAnalysis(response.data);

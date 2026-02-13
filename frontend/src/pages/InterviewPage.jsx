@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api';
 import { FiChevronLeft, FiChevronRight, FiCheckCircle } from 'react-icons/fi';
 
 const InterviewPage = () => {
@@ -78,7 +78,7 @@ const InterviewPage = () => {
                 }
             }
 
-            const response = await axios.post('http://localhost:5000/api/interview/submit', {
+            const response = await api.post('/interview/submit', {
                 sessionId,
                 answers
             });
