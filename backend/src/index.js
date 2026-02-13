@@ -5,7 +5,6 @@ const cors = require('cors');
 const connectDB = require('../config/db');
 const authRoutes = require('./routes/authRoutes');
 const questionRoutes = require('./routes/questionRoutes');
-const resultRoutes = require('./routes/resultRoutes');
 const evaluationRoutes = require('./routes/evaluationRoutes');
 const resumeRoutes = require('./routes/resumeRoutes');
 const interviewRoutes = require('./routes/interviewRoutes');
@@ -46,11 +45,6 @@ app.use('/api/auth', authRoutes);
 // Question routes for mock interview
 // GET /api/questions
 app.use('/api/questions', questionRoutes);
-
-// Result routes for performance tracking
-// POST /api/results
-// GET /api/results
-app.use('/api/results', resultRoutes);
 
 // AI evaluation routes for HR-style answers
 // POST /api/evaluations  -> send answer text, get feedback + score, store in DB

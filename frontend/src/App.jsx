@@ -4,7 +4,6 @@ import HomePage from './pages/HomePage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
-import MockInterviewPage from './pages/MockInterviewPage.jsx';
 import ResumeAnalyzerPage from './pages/ResumeAnalyzerPage.jsx';
 import HistoryPage from './pages/HistoryPage.jsx';
 import InterviewRolePage from './pages/InterviewRolePage.jsx';
@@ -111,14 +110,6 @@ const App = () => {
                         element={
                             <ProtectedRoute>
                                 <HistoryPage />
-                            </ProtectedRoute>
-                        }
-                    />
-                    <Route
-                        path="/mock-interview"
-                        element={
-                            <ProtectedRoute>
-                                <MockInterviewPage />
                             </ProtectedRoute>
                         }
                     />

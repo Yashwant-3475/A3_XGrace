@@ -1,10 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { getInterviewQuestions, startInterview, submitInterview, getRecentInterviews, getInterviewHistory } = require('../controllers/interviewController');
+const { startInterview, submitInterview, getRecentInterviews, getInterviewHistory } = require('../controllers/interviewController');
 const authMiddleware = require('../middleware/authMiddleware');
-
-// GET /api/interview/questions (EXISTING - unchanged)
-router.get('/questions', getInterviewQuestions);
 
 // POST /api/interview/start - Start a new interview session
 router.post('/start', startInterview);
