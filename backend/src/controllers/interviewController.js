@@ -27,10 +27,10 @@ const getInterviewQuestions = (req, res) => {
 };
 
 // Start a new interview session
-// Fetches 10 random questions by role and creates a session
+// Fetches 10 random questions by role and difficulty, creates a session
 const startInterview = async (req, res) => {
   try {
-    const { role } = req.body;
+    const { role, difficulty } = req.body;
 
     // Validate role
     if (!role) {
@@ -44,21 +44,42 @@ const startInterview = async (req, res) => {
       });
     }
 
+    // Validate difficulty (optional for backward compatibility)
+    if (difficulty) {
+      const validDifficulties = ['easy', 'medium', 'hard'];
+      if (!validDifficulties.includes(difficulty)) {
+        return res.status(400).json({
+          message: `Invalid difficulty. Must be one of: ${validDifficulties.join(', ')}`
+        });
+      }
+    }
+
+    // Build match query for MongoDB aggregation
+    const matchQuery = { role: role };
+    if (difficulty) {
+      matchQuery.difficulty = difficulty;
+    }
+
     // Fetch 10 random questions using MongoDB aggregation
     const randomQuestions = await Question.aggregate([
-      { $match: { role: role } },
+      { $match: matchQuery },
       { $sample: { size: 10 } }
     ]);
 
+    // Handle case with insufficient questions - return what's available
     if (randomQuestions.length === 0) {
+      const filterDesc = difficulty
+        ? `role: ${role}, difficulty: ${difficulty}`
+        : `role: ${role}`;
       return res.status(404).json({
-        message: `No questions found for role: ${role}. Please ensure the database is seeded.`
+        message: `No questions found for ${filterDesc}. Please ensure the database is seeded.`
       });
     }
 
     // Create interview session
     const session = new InterviewSession({
       role: role,
+      difficulty: difficulty || 'mixed', // Store difficulty in session
       questions: randomQuestions.map(q => ({
         questionId: q._id,
         selectedAnswer: null
@@ -83,6 +104,7 @@ const startInterview = async (req, res) => {
     res.status(200).json({
       sessionId: session._id,
       role: session.role,
+      difficulty: difficulty,
       totalQuestions: session.totalQuestions,
       questions: questionsForFrontend
     });

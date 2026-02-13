@@ -13,6 +13,11 @@ const interviewSessionSchema = new mongoose.Schema(
             required: true,
             enum: ['frontend', 'backend', 'mern', 'hr', 'aptitude'],
         },
+        difficulty: {
+            type: String,
+            enum: ['easy', 'medium', 'hard', 'mixed'],
+            default: 'mixed',
+        },
         questions: [
             {
                 questionId: {
