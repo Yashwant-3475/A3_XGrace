@@ -34,7 +34,7 @@ const register = async (req, res) => {
       return res.status(400).json({ message: 'Name, email and password are required.' });
     }
 
-    // Check if a user with this email already exists
+
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: 'User with this email already exists.' });
@@ -115,9 +115,41 @@ const login = async (req, res) => {
   }
 };
 
+// @route   GET /api/auth/validate
+// @desc    Validate an existing JWT token
+// @access  Private (requires valid token in Authorization header)
+const validateToken = (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ valid: false, message: 'No token provided.' });
+    }
+
+    const token = authHeader.split(' ')[1];
+
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({ valid: false, message: 'JWT_SECRET not configured.' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    return res.status(200).json({
+      valid: true,
+      user: {
+        id: decoded.userId,
+        role: decoded.role,
+      },
+    });
+  } catch (error) {
+    // Token is expired, malformed, or has invalid signature
+    return res.status(401).json({ valid: false, message: 'Token is invalid or expired.' });
+  }
+};
+
 module.exports = {
   register,
   login,
+  validateToken,
 };
 
 

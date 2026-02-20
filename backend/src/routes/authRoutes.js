@@ -1,5 +1,5 @@
 const express = require('express');
-const { register, login } = require('../controllers/authController');
+const { register, login, validateToken } = require('../controllers/authController');
 
 // Create a new router object
 const router = express.Router();
@@ -11,6 +11,10 @@ router.post('/register', register);
 // Route for logging in an existing user
 // POST /api/auth/login
 router.post('/login', login);
+
+// Route for validating an existing JWT token
+// GET /api/auth/validate
+router.get('/validate', validateToken);
 
 module.exports = router;
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { FiLock, FiMail, FiLogIn } from 'react-icons/fi';
 import './Auth.css';
 
@@ -104,9 +104,9 @@ const LoginPage = () => {
                 <div className="text-center mt-4">
                     <p className="auth-footer-text">
                         Don't have an account?{' '}
-                        <a href="/register" className="auth-link">
+                        <Link to="/register" className="auth-link">
                             Sign up
-                        </a>
+                        </Link>
                     </p>
                 </div>
             </div>
