@@ -1,0 +1,298 @@
+/* ============================================================
+   Admin Panel Styles — matches the existing app theme
+   Primary: #6F2DBD | Secondary: #A663CC | Dark: #171123
+   ============================================================ */
+
+.admin-layout {
+    display: flex;
+    min-height: calc(100vh - 80px);
+    margin: 0 -12px; /* break out of .container padding */
+    animation: fadeIn 0.4s ease;
+}
+
+/* ── Sidebar ────────────────────────────────────────────── */
+.admin-sidebar {
+    width: 240px;
+    min-width: 240px;
+    background: linear-gradient(180deg, #171123 0%, #2a1a4a 100%);
+    padding: 2rem 0;
+    display: flex;
+    flex-direction: column;
+    border-radius: 0 0 0 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.admin-sidebar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #6F2DBD, #A663CC);
+}
+
+.admin-sidebar-brand {
+    padding: 0 1.5rem 2rem;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 1.5rem;
+}
+
+.admin-sidebar-brand h2 {
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: 0.02em;
+}
+
+.admin-sidebar-brand span {
+    display: inline-block;
+    background: linear-gradient(135deg, #6F2DBD, #A663CC);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 0.35rem;
+}
+
+.admin-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.8rem 1.5rem;
+    color: rgba(255,255,255,0.6);
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
+}
+
+.admin-nav-item:hover {
+    color: #fff;
+    background: rgba(166, 99, 204, 0.15);
+    border-left-color: #A663CC;
+}
+
+.admin-nav-item.active {
+    color: #fff;
+    background: rgba(111, 45, 189, 0.3);
+    border-left-color: #6F2DBD;
+}
+
+.admin-nav-item svg {
+    flex-shrink: 0;
+}
+
+/* ── Main Content ───────────────────────────────────────── */
+.admin-main {
+    flex: 1;
+    padding: 2rem 2.5rem;
+    background: #f8f6fc;
+    overflow-y: auto;
+}
+
+.admin-page-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #171123;
+    margin-bottom: 0.35rem;
+}
+
+.admin-page-subtitle {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+}
+
+/* ── Stat Cards ─────────────────────────────────────────── */
+.admin-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.admin-stat-card {
+    background: white;
+    border-radius: 14px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 12px rgba(111, 45, 189, 0.08);
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    transition: all 0.25s ease;
+    border: 1px solid rgba(111, 45, 189, 0.06);
+}
+
+.admin-stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 28px rgba(111, 45, 189, 0.14);
+}
+
+.admin-stat-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.admin-stat-icon.purple { background: linear-gradient(135deg, #6F2DBD, #A663CC); }
+.admin-stat-icon.teal   { background: linear-gradient(135deg, #0891b2, #06b6d4); }
+.admin-stat-icon.orange { background: linear-gradient(135deg, #ea580c, #f97316); }
+
+.admin-stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #171123;
+    line-height: 1;
+}
+
+.admin-stat-label {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+    font-weight: 500;
+}
+
+/* ── Tables ─────────────────────────────────────────────── */
+.admin-table-card {
+    background: white;
+    border-radius: 14px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 12px rgba(111, 45, 189, 0.08);
+    border: 1px solid rgba(111, 45, 189, 0.06);
+}
+
+.admin-table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.admin-table-header h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #171123;
+    margin: 0;
+}
+
+.admin-count-badge {
+    background: linear-gradient(135deg, #6F2DBD, #A663CC);
+    color: white;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.2rem 0.7rem;
+    border-radius: 999px;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.admin-table th {
+    text-align: left;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #9ca3af;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-table th:first-child { border-radius: 8px 0 0 8px; }
+.admin-table th:last-child  { border-radius: 0 8px 8px 0; }
+
+.admin-table td {
+    padding: 0.85rem 1rem;
+    color: #374151;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+}
+
+.admin-table tr:last-child td { border-bottom: none; }
+
+.admin-table tr:hover td {
+    background: #faf8ff;
+}
+
+/* Role badges */
+.role-badge {
+    display: inline-block;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.role-badge.admin {
+    background: linear-gradient(135deg, #6F2DBD22, #A663CC22);
+    color: #6F2DBD;
+    border: 1px solid #A663CC55;
+}
+
+.role-badge.user {
+    background: #f3f4f6;
+    color: #6b7280;
+    border: 1px solid #e5e7eb;
+}
+
+/* Difficulty badges */
+.diff-badge {
+    display: inline-block;
+    padding: 0.18rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.diff-badge.easy   { background: #d1fae5; color: #065f46; }
+.diff-badge.medium { background: #fef3c7; color: #92400e; }
+.diff-badge.hard   { background: #fee2e2; color: #991b1b; }
+
+/* ── Loading / Error states ─────────────────────────────── */
+.admin-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    color: #6b7280;
+    gap: 0.75rem;
+}
+
+.admin-error {
+    background: #fee2e2;
+    color: #991b1b;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    font-size: 0.9rem;
+    margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+    .admin-layout { flex-direction: column; }
+    .admin-sidebar { width: 100%; min-width: unset; flex-direction: row; padding: 1rem; overflow-x: auto; }
+    .admin-sidebar-brand { display: none; }
+    .admin-main { padding: 1.25rem; }
+}

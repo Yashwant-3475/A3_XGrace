@@ -15,6 +15,7 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
+  const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // On startup: validate any stored token against the backend.
@@ -40,11 +41,17 @@ export const AuthProvider = ({ children }) => {
         if (response.data.valid) {
           // Backend confirmed the token — safe to authenticate
           setToken(storedToken);
+          // Restore the user object (name, email, role) from localStorage
+          const storedUser = localStorage.getItem('user');
+          if (storedUser) {
+            try { setUser(JSON.parse(storedUser)); } catch (_) { }
+          }
         } else {
           // Backend rejected it — clear and force re-login
           localStorage.removeItem('authToken');
           localStorage.removeItem('user');
           setToken(null);
+          setUser(null);
         }
       } catch (err) {
         // Token expired, invalid signature, or server error — clear it
@@ -52,6 +59,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('authToken');
         localStorage.removeItem('user');
         setToken(null);
+        setUser(null);
       } finally {
         setIsLoading(false);
       }
@@ -61,8 +69,13 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // Login: called after a successful POST /api/auth/login response
-  const login = (newToken) => {
+  // Accepts both the JWT token and the user object { id, name, email, role }
+  const login = (newToken, newUser) => {
     localStorage.setItem('authToken', newToken);
+    if (newUser) {
+      localStorage.setItem('user', JSON.stringify(newUser));
+      setUser(newUser);
+    }
     setToken(newToken);
   };
 
@@ -71,6 +84,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
     setToken(null);
+    setUser(null);
   };
 
   // Only true after backend has confirmed the token
@@ -79,6 +93,7 @@ export const AuthProvider = ({ children }) => {
   const value = {
     isAuthenticated,
     token,
+    user,
     login,
     logout,
     isLoading,

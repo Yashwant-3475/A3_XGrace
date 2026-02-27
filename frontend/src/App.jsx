@@ -11,11 +11,13 @@ import InterviewPage from './pages/InterviewPage.jsx';
 import InterviewResultPage from './pages/InterviewResultPage.jsx';
 import InterviewReportPage from './pages/InterviewReportPage.jsx';
 import ProtectedRoute from './components/ProtectedRoute';
-import { FiHome, FiLogOut, FiLogIn, FiUserPlus, FiFileText, FiVideo, FiBarChart2 } from 'react-icons/fi';
+import AdminRoute from './components/AdminRoute';
+import AdminPage from './pages/AdminPage.jsx';
+import { FiHome, FiLogOut, FiLogIn, FiUserPlus, FiFileText, FiVideo, FiBarChart2, FiShield } from 'react-icons/fi';
 import './App.css';
 
 const Navbar = () => {
-    const { isAuthenticated, logout } = useAuth();
+    const { isAuthenticated, logout, user } = useAuth();
     const navigate = useNavigate();
 
     const handleLogout = () => {
@@ -56,6 +58,12 @@ const Navbar = () => {
                                     <FiFileText className="me-1" size={18} />
                                     Resume Analyzer
                                 </Link>
+                                {user?.role === 'admin' && (
+                                    <Link className="nav-link d-flex align-items-center" to="/admin" style={{ color: '#6F2DBD' }}>
+                                        <FiShield className="me-1" size={18} />
+                                        Admin Panel
+                                    </Link>
+                                )}
                                 <button
                                     className="btn btn-outline-danger ms-2 d-flex align-items-center"
                                     onClick={handleLogout}
@@ -151,6 +159,14 @@ const App = () => {
                             <ProtectedRoute>
                                 <InterviewReportPage />
                             </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/admin"
+                        element={
+                            <AdminRoute>
+                                <AdminPage />
+                            </AdminRoute>
                         }
                     />
                 </Routes>

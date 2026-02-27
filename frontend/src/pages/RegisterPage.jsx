@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { FiUserPlus, FiMail, FiLock, FiUser } from 'react-icons/fi';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -28,6 +29,7 @@ const registerSchema = Yup.object({
 
 const RegisterPage = () => {
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     const [serverError, setServerError] = useState('');
     const [success, setSuccess] = useState('');
@@ -53,13 +55,13 @@ const RegisterPage = () => {
 
                 const { token, user } = response.data;
 
-                localStorage.setItem('token', token);
-                localStorage.setItem('user', JSON.stringify(user));
+                // Register immediately logs the user in
+                login(token, user);
 
                 setSuccess('Account created successfully! Redirecting...');
 
                 setTimeout(() => {
-                    navigate('/');
+                    navigate('/dashboard');
                 }, 800);
             } catch (err) {
                 const message =
@@ -181,9 +183,9 @@ const RegisterPage = () => {
                 <div className="text-center mt-4">
                     <p className="auth-footer-text">
                         Already have an account?{' '}
-                        <a href="/login" className="auth-link">
+                        <Link to="/login" className="auth-link">
                             Sign in
-                        </a>
+                        </Link>
                     </p>
                 </div>
             </div>

@@ -47,10 +47,10 @@ const LoginPage = () => {
 
                 const { token, user } = response.data;
 
-                login(token);
-                localStorage.setItem('user', JSON.stringify(user));
+                login(token, user);
 
-                navigate('/dashboard');
+                // Redirect admins to their panel, regular users to dashboard
+                navigate(user?.role === 'admin' ? '/admin' : '/dashboard');
             } catch (err) {
                 const message =
                     err.response?.data?.message || 'Login failed. Please check your credentials.';

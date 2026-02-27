@@ -19,7 +19,8 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      default: 'user', // simple role field (e.g., 'user', 'admin')
+      enum: ['user', 'admin'],
+      default: 'user', // every new account starts as a regular user
     },
   },
   {

@@ -8,6 +8,7 @@ const questionRoutes = require('./routes/questionRoutes');
 const evaluationRoutes = require('./routes/evaluationRoutes');
 const resumeRoutes = require('./routes/resumeRoutes');
 const interviewRoutes = require('./routes/interviewRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 const app = express();
 
 // Connect to MongoDB
@@ -56,6 +57,12 @@ app.use('/api/evaluations', evaluationRoutes);
 app.use('/api/resume', resumeRoutes);
 
 app.use('/api/interview', interviewRoutes);
+
+// Admin-only routes (protected by authMiddleware + isAdmin)
+// GET /api/admin/stats    -> platform stats
+// GET /api/admin/users    -> all users
+// GET /api/admin/questions -> all questions
+app.use('/api/admin', adminRoutes);
 // Start server on a default port
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
