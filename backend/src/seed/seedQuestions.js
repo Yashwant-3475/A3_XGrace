@@ -6,6 +6,21 @@ const Question = require('../models/Question');
 // If empty, it inserts a comprehensive question bank.
 // If not empty, it skips seeding.
 
+/**
+ * Randomizes the position of the correct answer within a question's options array.
+ * Every question is authored with the correct answer at index 0.
+ * This helper picks a random target index (0–3), moves the correct answer
+ * there, and updates the `answer` field to match the new position.
+ */
+const shuffleOptions = (q) => {
+    const correctAnswer = q.options[q.answer];  // always index 0 in source data
+    const distractors = q.options.filter((_, i) => i !== q.answer);
+    const newAnswerIndex = Math.floor(Math.random() * 4);
+    const shuffledOptions = [...distractors];
+    shuffledOptions.splice(newAnswerIndex, 0, correctAnswer);
+    return { ...q, options: shuffledOptions, answer: newAnswerIndex };
+};
+
 const seedQuestions = async () => {
     try {
         // Check if questions already exist
@@ -1011,8 +1026,9 @@ const seedQuestions = async () => {
             }
         ];
 
-        // Insert all questions into the database
-        await Question.insertMany(questions);
+        // Randomize correct answer position for every question, then insert
+        const shuffledQuestions = questions.map(shuffleOptions);
+        await Question.insertMany(shuffledQuestions);
         console.log('Question bank seeded successfully');
         console.log(`Total questions inserted: ${questions.length}`);
 
