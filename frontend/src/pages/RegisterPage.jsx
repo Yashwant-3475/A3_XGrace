@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 import { FiUserPlus, FiMail, FiLock, FiUser } from 'react-icons/fi';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -29,7 +28,6 @@ const registerSchema = Yup.object({
 
 const RegisterPage = () => {
     const navigate = useNavigate();
-    const { login } = useAuth();
 
     const [serverError, setServerError] = useState('');
     const [success, setSuccess] = useState('');
@@ -47,22 +45,17 @@ const RegisterPage = () => {
             setSuccess('');
             setLoading(true);
             try {
-                const response = await axios.post('http://localhost:5000/api/auth/register', {
+                await axios.post('http://localhost:5000/api/auth/register', {
                     name: values.name,
                     email: values.email,
                     password: values.password,
                 });
 
-                const { token, user } = response.data;
-
-                // Register immediately logs the user in
-                login(token, user);
-
-                setSuccess('Account created successfully! Redirecting...');
+                setSuccess('Account created successfully! Please log in.');
 
                 setTimeout(() => {
-                    navigate('/dashboard');
-                }, 800);
+                    navigate('/login');
+                }, 1500);
             } catch (err) {
                 const message =
                     err.response?.data?.message || 'Registration failed. Please try again.';

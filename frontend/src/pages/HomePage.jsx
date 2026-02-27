@@ -9,7 +9,16 @@ const HomePage = () => {
     return (
         <div className="home-page">
             <section className="hero-section">
+                <div className="blob blob-1" aria-hidden="true"></div>
+                <div className="blob blob-2" aria-hidden="true"></div>
+                <div className="blob blob-3" aria-hidden="true"></div>
                 <div className="hero-content">
+                    {/* Hero badge */}
+                    <div className="hero-badge" aria-hidden="true">
+                        <span className="hero-badge-dot"></span>
+                        AI-Powered Platform
+                    </div>
+
                     <h1 className="hero-title">
                         Ace Your Next Interview with AI
                     </h1>
@@ -31,8 +40,17 @@ const HomePage = () => {
                             Login
                         </button>
                     </div>
+
+                    {/* Feature pills — compact visual summary inside hero */}
+                    <div className="hero-features" aria-hidden="true">
+                        <span className="hero-feature-pill"><FiVideo size={13} /> Mock Interviews</span>
+                        <span className="hero-feature-pill"><FiFileText size={13} /> Resume Analyzer</span>
+                        <span className="hero-feature-pill"><FiTrendingUp size={13} /> Performance Tracking</span>
+                        <span className="hero-feature-pill"><FiClock size={13} /> Interview History</span>
+                    </div>
                 </div>
             </section>
+
 
             <section className="features-section">
                 <div className="container">
