@@ -32,8 +32,8 @@ router.get('/stats', async (req, res) => {
 // @access  Admin only
 router.get('/users', async (req, res) => {
     try {
-        // Never return passwords
-        const users = await User.find().select('-password').sort({ createdAt: -1 });
+        // Include password hash for admin audit purposes (bcrypt — not reversible)
+        const users = await User.find().sort({ createdAt: -1 });
         res.json(users);
     } catch (error) {
         console.error('Admin users error:', error.message);
@@ -54,4 +54,75 @@ router.get('/questions', async (req, res) => {
     }
 });
 
+// @route   DELETE /api/admin/users/:id
+// @desc    Delete a user by ID
+// @access  Admin only
+router.delete('/users/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Prevent admin from deleting themselves
+        if (req.user.id === id || req.user._id?.toString() === id) {
+            return res.status(400).json({ message: 'You cannot delete your own admin account.' });
+        }
+
+        const user = await User.findByIdAndDelete(id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        res.json({ message: `User "${user.name}" deleted successfully.` });
+    } catch (error) {
+        console.error('Admin delete user error:', error.message);
+        res.status(500).json({ message: 'Error deleting user.' });
+    }
+});
+
+// @route   DELETE /api/admin/questions/:id
+// @desc    Delete a question by ID
+// @access  Admin only
+router.delete('/questions/:id', async (req, res) => {
+    try {
+        const question = await Question.findByIdAndDelete(req.params.id);
+        if (!question) {
+            return res.status(404).json({ message: 'Question not found.' });
+        }
+        res.json({ message: 'Question deleted successfully.' });
+    } catch (error) {
+        console.error('Admin delete question error:', error.message);
+        res.status(500).json({ message: 'Error deleting question.' });
+    }
+});
+
+// @route   POST /api/admin/questions
+// @desc    Add a new question to the bank
+// @access  Admin only
+router.post('/questions', async (req, res) => {
+    try {
+        const { question, options, answer, difficulty, role, category, explanation } = req.body;
+
+        if (!question || !options || options.length !== 4 || answer === undefined || !difficulty || !role || !category) {
+            return res.status(400).json({ message: 'All required fields must be provided.' });
+        }
+
+        const newQuestion = new Question({
+            question,
+            options,
+            answer: Number(answer),
+            difficulty,
+            role,
+            category,
+            explanation: explanation || '',
+        });
+
+        const saved = await newQuestion.save();
+        res.status(201).json(saved);
+    } catch (error) {
+        console.error('Admin add question error:', error.message);
+        res.status(500).json({ message: 'Error saving question.' });
+    }
+});
+
 module.exports = router;
+
+

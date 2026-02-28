@@ -6,7 +6,8 @@
 .admin-layout {
     display: flex;
     min-height: calc(100vh - 80px);
-    margin: 0 -12px; /* break out of .container padding */
+    margin: 0 -12px;
+    /* break out of .container padding */
     animation: fadeIn 0.4s ease;
 }
 
@@ -35,7 +36,7 @@
 
 .admin-sidebar-brand {
     padding: 0 1.5rem 2rem;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     margin-bottom: 1.5rem;
 }
 
@@ -65,7 +66,7 @@
     align-items: center;
     gap: 0.75rem;
     padding: 0.8rem 1.5rem;
-    color: rgba(255,255,255,0.6);
+    color: rgba(255, 255, 255, 0.6);
     font-size: 0.95rem;
     font-weight: 500;
     cursor: pointer;
@@ -149,9 +150,17 @@
     flex-shrink: 0;
 }
 
-.admin-stat-icon.purple { background: linear-gradient(135deg, #6F2DBD, #A663CC); }
-.admin-stat-icon.teal   { background: linear-gradient(135deg, #0891b2, #06b6d4); }
-.admin-stat-icon.orange { background: linear-gradient(135deg, #ea580c, #f97316); }
+.admin-stat-icon.purple {
+    background: linear-gradient(135deg, #6F2DBD, #A663CC);
+}
+
+.admin-stat-icon.teal {
+    background: linear-gradient(135deg, #0891b2, #06b6d4);
+}
+
+.admin-stat-icon.orange {
+    background: linear-gradient(135deg, #ea580c, #f97316);
+}
 
 .admin-stat-value {
     font-size: 2rem;
@@ -219,8 +228,13 @@
     border-bottom: 1px solid #e5e7eb;
 }
 
-.admin-table th:first-child { border-radius: 8px 0 0 8px; }
-.admin-table th:last-child  { border-radius: 0 8px 8px 0; }
+.admin-table th:first-child {
+    border-radius: 8px 0 0 8px;
+}
+
+.admin-table th:last-child {
+    border-radius: 0 8px 8px 0;
+}
 
 .admin-table td {
     padding: 0.85rem 1rem;
@@ -229,7 +243,9 @@
     vertical-align: middle;
 }
 
-.admin-table tr:last-child td { border-bottom: none; }
+.admin-table tr:last-child td {
+    border-bottom: none;
+}
 
 .admin-table tr:hover td {
     background: #faf8ff;
@@ -267,9 +283,20 @@
     text-transform: capitalize;
 }
 
-.diff-badge.easy   { background: #d1fae5; color: #065f46; }
-.diff-badge.medium { background: #fef3c7; color: #92400e; }
-.diff-badge.hard   { background: #fee2e2; color: #991b1b; }
+.diff-badge.easy {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.diff-badge.medium {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.diff-badge.hard {
+    background: #fee2e2;
+    color: #991b1b;
+}
 
 /* ── Loading / Error states ─────────────────────────────── */
 .admin-loading {
@@ -291,8 +318,371 @@
 }
 
 @media (max-width: 768px) {
-    .admin-layout { flex-direction: column; }
-    .admin-sidebar { width: 100%; min-width: unset; flex-direction: row; padding: 1rem; overflow-x: auto; }
-    .admin-sidebar-brand { display: none; }
-    .admin-main { padding: 1.25rem; }
+    .admin-layout {
+        flex-direction: column;
+    }
+
+    .admin-sidebar {
+        width: 100%;
+        min-width: unset;
+        flex-direction: row;
+        padding: 1rem;
+        overflow-x: auto;
+    }
+
+    .admin-sidebar-brand {
+        display: none;
+    }
+
+    .admin-main {
+        padding: 1.25rem;
+    }
+}
+
+/* ── Delete Button ───────────────────────────────────────── */
+.btn-delete {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid #fecaca;
+    background: #fff1f1;
+    color: #dc2626;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+}
+
+.btn-delete:hover:not(:disabled) {
+    background: #dc2626;
+    border-color: #dc2626;
+    color: #fff;
+    transform: scale(1.08);
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+.btn-delete:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ── Password Cell ───────────────────────────────────────── */
+.password-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.password-mask {
+    font-family: monospace;
+    letter-spacing: 0.08em;
+    color: #9ca3af;
+    font-size: 0.85rem;
+}
+
+.btn-password-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 4px;
+    transition: color 0.2s ease;
+}
+
+.btn-password-toggle:hover {
+    color: #6F2DBD;
+}
+
+/* ── Confirmation Modal ──────────────────────────────────── */
+.admin-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 5, 25, 0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    animation: fadeIn 0.2s ease;
+}
+
+.admin-modal {
+    background: #fff;
+    border-radius: 18px;
+    padding: 2rem 2.25rem;
+    max-width: 420px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(111, 45, 189, 0.25);
+    border: 1px solid rgba(111, 45, 189, 0.12);
+    text-align: center;
+    animation: slideUp 0.25s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(24px) scale(0.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.admin-modal-icon {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: #fee2e2;
+    color: #dc2626;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.25rem;
+}
+
+.admin-modal-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #171123;
+    margin: 0 0 0.6rem;
+}
+
+.admin-modal-body {
+    font-size: 0.92rem;
+    color: #6b7280;
+    margin: 0 0 1.75rem;
+    line-height: 1.6;
+}
+
+.admin-modal-body strong {
+    color: #374151;
+    font-weight: 600;
+}
+
+.admin-modal-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+}
+
+.admin-modal-btn {
+    padding: 0.6rem 1.5rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+    min-width: 100px;
+}
+
+.admin-modal-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.admin-modal-btn--cancel {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #e5e7eb;
+}
+
+.admin-modal-btn--cancel:hover:not(:disabled) {
+    background: #e5e7eb;
+}
+
+.admin-modal-btn--confirm {
+    background: linear-gradient(135deg, #dc2626, #ef4444);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+.admin-modal-btn--confirm:hover:not(:disabled) {
+    background: linear-gradient(135deg, #b91c1c, #dc2626);
+    box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4);
+    transform: translateY(-1px);
+}
+
+/* ── Question Search Bar ─────────────────────────────────── */
+.admin-search-bar {
+    width: 100%;
+    padding: 0.65rem 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    color: #374151;
+    background: #faf9ff;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    margin-bottom: 1.25rem;
+    box-sizing: border-box;
+}
+
+.admin-search-bar:focus {
+    border-color: #A663CC;
+    box-shadow: 0 0 0 3px rgba(166, 99, 204, 0.15);
+    background: #fff;
+}
+
+.admin-search-bar::placeholder {
+    color: #9ca3af;
+}
+
+/* ── Add Question Modal Variants ─────────────────────────── */
+.admin-modal--wide {
+    max-width: 640px;
+    text-align: left;
+    padding: 2rem 2.25rem 1.75rem;
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.admin-modal-close {
+    position: absolute;
+    top: 1.1rem;
+    right: 1.1rem;
+    background: transparent;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 6px;
+    transition: color 0.2s ease, background 0.2s ease;
+}
+
+.admin-modal-close:hover {
+    color: #374151;
+    background: #f3f4f6;
+}
+
+/* ── Form Group & Inputs ─────────────────────────────────── */
+.admin-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    margin-bottom: 1rem;
+}
+
+.admin-form-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #374151;
+    letter-spacing: 0.01em;
+}
+
+.admin-form-input,
+.admin-form-select,
+.admin-form-textarea {
+    padding: 0.6rem 0.85rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    color: #374151;
+    background: #faf9ff;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    width: 100%;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+.admin-form-input:focus,
+.admin-form-select:focus,
+.admin-form-textarea:focus {
+    border-color: #A663CC;
+    box-shadow: 0 0 0 3px rgba(166, 99, 204, 0.15);
+    background: #fff;
+}
+
+.admin-form-input.is-invalid,
+.admin-form-select.is-invalid,
+.admin-form-textarea.is-invalid {
+    border-color: #f87171;
+    box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.12);
+}
+
+.admin-form-textarea {
+    resize: vertical;
+    min-height: 72px;
+}
+
+.admin-form-select {
+    cursor: pointer;
+}
+
+.admin-form-error {
+    font-size: 0.78rem;
+    color: #dc2626;
+    font-weight: 500;
+    margin-top: 1px;
+}
+
+/* ── 2-column options grid ───────────────────────────────── */
+.admin-form-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 1rem;
+}
+
+@media (max-width: 540px) {
+    .admin-form-grid-2 {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ── Add Question Button ─────────────────────────────────── */
+.btn-add-question {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.45rem 1rem;
+    background: linear-gradient(135deg, #6F2DBD, #A663CC);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(111, 45, 189, 0.25);
+    white-space: nowrap;
+}
+
+.btn-add-question:hover {
+    background: linear-gradient(135deg, #5b2299, #9448bb);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(111, 45, 189, 0.35);
+}
+
+.btn-add-question:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ── Hash text (password audit) ──────────────────────────── */
+.hash-text {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.72rem;
+    color: #6F2DBD;
+    word-break: break-all;
+    display: inline-block;
+    max-width: 220px;
+    background: rgba(111, 45, 189, 0.06);
+    padding: 2px 5px;
+    border-radius: 4px;
+    letter-spacing: 0.01em;
 }

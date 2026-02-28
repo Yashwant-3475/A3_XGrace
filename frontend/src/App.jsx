@@ -1,6 +1,8 @@
 import { Routes, Route, useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { useState, useEffect } from 'react';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import HomePage from './pages/HomePage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
@@ -63,22 +65,26 @@ const Navbar = () => {
                 <div className="app-navbar__links">
                     {isAuthenticated ? (
                         <>
-                            <Link className={`app-navbar__link${isActive('/dashboard') ? ' app-navbar__link--active' : ''}`} to="/dashboard">
-                                <FiBarChart2 size={16} />
-                                Dashboard
-                            </Link>
-                            <Link className={`app-navbar__link${isActive('/interview') ? ' app-navbar__link--active' : ''}`} to="/interview">
-                                <FiVideo size={16} />
-                                Mock Interview
-                            </Link>
-                            <Link className={`app-navbar__link${isActive('/resume-analyzer') ? ' app-navbar__link--active' : ''}`} to="/resume-analyzer">
-                                <FiFileText size={16} />
-                                Resume Analyzer
-                            </Link>
+                            {user?.role !== 'admin' && (
+                                <>
+                                    <Link className={`app-navbar__link${isActive('/dashboard') ? ' app-navbar__link--active' : ''}`} to="/dashboard">
+                                        <FiBarChart2 size={16} />
+                                        Dashboard
+                                    </Link>
+                                    <Link className={`app-navbar__link${isActive('/interview') ? ' app-navbar__link--active' : ''}`} to="/interview">
+                                        <FiVideo size={16} />
+                                        Mock Interview
+                                    </Link>
+                                    <Link className={`app-navbar__link${isActive('/resume-analyzer') ? ' app-navbar__link--active' : ''}`} to="/resume-analyzer">
+                                        <FiFileText size={16} />
+                                        Resume Analyzer
+                                    </Link>
+                                </>
+                            )}
                             {user?.role === 'admin' && (
                                 <Link className={`app-navbar__link app-navbar__link--admin${isActive('/admin') ? ' app-navbar__link--active' : ''}`} to="/admin">
                                     <FiShield size={16} />
-                                    Admin
+                                    Admin Panel
                                 </Link>
                             )}
                         </>
@@ -130,9 +136,13 @@ const Navbar = () => {
             <div className={`app-navbar__mobile${menuOpen ? ' app-navbar__mobile--open' : ''}`}>
                 {isAuthenticated ? (
                     <>
-                        <Link className={`app-navbar__mobile-link${isActive('/dashboard') ? ' active' : ''}`} to="/dashboard"><FiBarChart2 size={16} /> Dashboard</Link>
-                        <Link className={`app-navbar__mobile-link${isActive('/interview') ? ' active' : ''}`} to="/interview"><FiVideo size={16} /> Mock Interview</Link>
-                        <Link className={`app-navbar__mobile-link${isActive('/resume-analyzer') ? ' active' : ''}`} to="/resume-analyzer"><FiFileText size={16} /> Resume Analyzer</Link>
+                        {user?.role !== 'admin' && (
+                            <>
+                                <Link className={`app-navbar__mobile-link${isActive('/dashboard') ? ' active' : ''}`} to="/dashboard"><FiBarChart2 size={16} /> Dashboard</Link>
+                                <Link className={`app-navbar__mobile-link${isActive('/interview') ? ' active' : ''}`} to="/interview"><FiVideo size={16} /> Mock Interview</Link>
+                                <Link className={`app-navbar__mobile-link${isActive('/resume-analyzer') ? ' active' : ''}`} to="/resume-analyzer"><FiFileText size={16} /> Resume Analyzer</Link>
+                            </>
+                        )}
                         {user?.role === 'admin' && (
                             <Link className={`app-navbar__mobile-link app-navbar__mobile-link--admin${isActive('/admin') ? ' active' : ''}`} to="/admin"><FiShield size={16} /> Admin Panel</Link>
                         )}
@@ -226,6 +236,21 @@ const App = () => {
                     />
                 </Routes>
             </div>
+            <ToastContainer
+                position="top-right"
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop
+                closeOnClick
+                pauseOnHover
+                theme="dark"
+                toastStyle={{
+                    background: 'linear-gradient(135deg, #1e1030, #2a1a4a)',
+                    border: '1px solid rgba(111,45,189,0.4)',
+                    borderRadius: '12px',
+                    color: '#fff',
+                }}
+            />
         </>
     );
 };
