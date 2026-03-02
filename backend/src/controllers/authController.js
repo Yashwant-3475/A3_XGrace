@@ -1,6 +1,19 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
+
+// Lazily initialised so we don't crash at startup if GOOGLE_CLIENT_ID is missing
+let googleClient = null;
+const getGoogleClient = () => {
+  if (!googleClient) {
+    if (!process.env.GOOGLE_CLIENT_ID) {
+      throw new Error('GOOGLE_CLIENT_ID is not set in .env');
+    }
+    googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+  }
+  return googleClient;
+};
 
 // Helper function to create a JWT token for a user
 const generateToken = (user) => {
@@ -146,10 +159,86 @@ const validateToken = (req, res) => {
   }
 };
 
+// @route   POST /api/auth/google
+// @desc    Sign in / register via Google OAuth (verify ID token server-side)
+// @access  Public
+const googleAuth = async (req, res) => {
+  try {
+    const { credential } = req.body; // Google ID token from the frontend
+
+    if (!credential) {
+      return res.status(400).json({ message: 'Google credential token is required.' });
+    }
+
+    // Verify the token against Google's servers
+    const client = getGoogleClient();
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { sub: googleId, email, name, picture } = payload;
+
+    if (!email) {
+      return res.status(400).json({ message: 'Could not retrieve email from Google account.' });
+    }
+
+    // Find existing user by Google ID first, then fall back to email
+    let user = await User.findOne({ providerId: googleId, provider: 'google' });
+
+    if (!user) {
+      // Check if a local account already exists with the same email
+      const emailUser = await User.findOne({ email });
+      if (emailUser && emailUser.provider === 'local') {
+        // Link the Google identity to the existing local account
+        emailUser.provider = 'google';
+        emailUser.providerId = googleId;
+        await emailUser.save();
+        user = emailUser;
+      } else if (!emailUser) {
+        // Brand-new user — create an account
+        user = await User.create({
+          name: name || email.split('@')[0],
+          email,
+          provider: 'google',
+          providerId: googleId,
+          password: null,
+          role: 'user',
+        });
+      } else {
+        // Edge case: another Google account already linked to this email
+        user = emailUser;
+      }
+    }
+
+    const token = generateToken(user);
+
+    return res.status(200).json({
+      message: 'Google login successful.',
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        picture: picture || null,
+      },
+      token,
+    });
+  } catch (error) {
+    console.error('Google auth error:', error.message);
+    if (error.message.includes('GOOGLE_CLIENT_ID')) {
+      return res.status(500).json({ message: 'Google login is not configured on the server.' });
+    }
+    return res.status(401).json({ message: 'Invalid Google credential. Please try again.' });
+  }
+};
+
 module.exports = {
   register,
   login,
   validateToken,
+  googleAuth,
 };
 
 

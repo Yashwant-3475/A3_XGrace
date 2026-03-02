@@ -1,5 +1,5 @@
 const express = require('express');
-const { register, login, validateToken } = require('../controllers/authController');
+const { register, login, validateToken, googleAuth } = require('../controllers/authController');
 
 // Create a new router object
 const router = express.Router();
@@ -15,6 +15,10 @@ router.post('/login', login);
 // Route for validating an existing JWT token
 // GET /api/auth/validate
 router.get('/validate', validateToken);
+
+// Route for Google OAuth sign-in / sign-up
+// POST /api/auth/google
+router.post('/google', googleAuth);
 
 module.exports = router;
 

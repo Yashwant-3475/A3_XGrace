@@ -5,6 +5,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { FiLock, FiMail, FiLogIn } from 'react-icons/fi';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import { GoogleLogin } from '@react-oauth/google';
 import './Auth.css';
 
 // Yup validation schema for login
@@ -29,6 +30,30 @@ const LoginPage = () => {
 
     const [serverError, setServerError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [googleLoading, setGoogleLoading] = useState(false);
+
+    // ── Google Sign-In handler ──────────────────────────────
+    const handleGoogleSuccess = async (credentialResponse) => {
+        setServerError('');
+        setGoogleLoading(true);
+        try {
+            const response = await axios.post('http://localhost:5000/api/auth/google', {
+                credential: credentialResponse.credential,
+            });
+            const { token, user } = response.data;
+            login(token, user);
+            navigate(user?.role === 'admin' ? '/admin' : '/dashboard');
+        } catch (err) {
+            const message = err.response?.data?.message || 'Google sign-in failed. Please try again.';
+            setServerError(message);
+        } finally {
+            setGoogleLoading(false);
+        }
+    };
+
+    const handleGoogleError = () => {
+        setServerError('Google sign-in was cancelled or failed. Please try again.');
+    };
 
     const formik = useFormik({
         initialValues: {
@@ -73,8 +98,36 @@ const LoginPage = () => {
                 </div>
 
                 {serverError && (
-                    <div className="alert alert-danger auth-alert mb-4">{serverError}</div>
+                    <div className="alert alert-danger auth-alert mb-3">{serverError}</div>
                 )}
+
+                {/* ── Social Login Buttons ── */}
+                <div className="social-login-section">
+                    {googleLoading ? (
+                        <button className="btn social-btn social-btn-google w-100" disabled>
+                            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            Signing in with Google...
+                        </button>
+                    ) : (
+                        <div className="google-btn-wrapper">
+                            <GoogleLogin
+                                onSuccess={handleGoogleSuccess}
+                                onError={handleGoogleError}
+                                useOneTap={false}
+                                theme="filled_black"
+                                shape="rectangular"
+                                size="large"
+                                text="continue_with"
+                                width="360"
+                            />
+                        </div>
+                    )}
+                </div>
+
+                {/* ── Divider ── */}
+                <div className="auth-divider">
+                    <span>or continue with email</span>
+                </div>
 
                 <form onSubmit={formik.handleSubmit} className="auth-form" noValidate>
                     {/* Email Field */}

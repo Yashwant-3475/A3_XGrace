@@ -15,7 +15,17 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true, // this will store the hashed password, not plain text
+      required: false, // optional: social login users won't have a password
+      default: null,
+    },
+    provider: {
+      type: String,
+      enum: ['local', 'google'],
+      default: 'local', // 'local' = email/password, 'google' = Google OAuth
+    },
+    providerId: {
+      type: String,
+      default: null, // stores Google's 'sub' (unique user ID) for deduplication
     },
     role: {
       type: String,
