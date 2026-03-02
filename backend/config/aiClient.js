@@ -8,7 +8,7 @@ if (!process.env.OPENAI_API_KEY) {
     'OPENAI_API_KEY is not set. AI evaluation endpoints will not work until it is configured.'
   );
 } else {
-  
+
   openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
   });

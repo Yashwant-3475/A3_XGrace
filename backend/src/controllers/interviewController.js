@@ -38,18 +38,24 @@ const startInterview = async (req, res) => {
     }
 
     // Fetch 10 random questions using MongoDB aggregation
-    const randomQuestions = await Question.aggregate([
+    let randomQuestions = await Question.aggregate([
       { $match: matchQuery },
       { $sample: { size: 10 } }
     ]);
 
-    // Handle case with insufficient questions - return what's available
+    // Fallback: if no questions match role+difficulty, try role only (any difficulty)
+    if (randomQuestions.length === 0 && difficulty) {
+      console.warn(`No questions found for role=${role}, difficulty=${difficulty}. Falling back to any difficulty.`);
+      randomQuestions = await Question.aggregate([
+        { $match: { role: role } },
+        { $sample: { size: 10 } }
+      ]);
+    }
+
+    // Handle case with no questions at all for this role
     if (randomQuestions.length === 0) {
-      const filterDesc = difficulty
-        ? `role: ${role}, difficulty: ${difficulty}`
-        : `role: ${role}`;
       return res.status(404).json({
-        message: `No questions found for ${filterDesc}. Please ensure the database is seeded.`
+        message: `No questions found for role: ${role}. Please ensure the database is seeded.`
       });
     }
 

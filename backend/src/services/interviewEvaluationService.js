@@ -1,9 +1,4 @@
-/**
- * Interview Evaluation Service
- * 
- * Generates intelligent performance evaluations using rule-based semantic analysis.
- * Groups questions by topics, identifies strengths/weaknesses, and provides improvement suggestions.
- */
+
 
 /**
  * Generate evaluation report for an interview session
