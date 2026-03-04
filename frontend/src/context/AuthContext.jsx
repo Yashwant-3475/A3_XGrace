@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const AuthContext = createContext(null);
 
-const BACKEND_URL = 'http://localhost:5000';
+const BACKEND_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 export const useAuth = () => {
   const context = useContext(AuthContext);

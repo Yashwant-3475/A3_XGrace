@@ -29,7 +29,7 @@ const HistoryPage = () => {
                 return;
             }
 
-            let url = `http://localhost:5000/api/interview/history?page=${page}&limit=5`;
+            let url = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/interview/history?page=${page}&limit=5`;
 
             if (filters.minScore) {
                 url += `&minScore=${filters.minScore}`;

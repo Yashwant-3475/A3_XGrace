@@ -33,7 +33,7 @@ const DashboardPage = () => {
         }
 
         // Use new interview session endpoint
-        const response = await axios.get('http://localhost:5000/api/interview/recent', {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/interview/recent`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

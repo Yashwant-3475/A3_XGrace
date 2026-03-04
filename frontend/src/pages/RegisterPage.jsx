@@ -43,7 +43,7 @@ const RegisterPage = () => {
         setSuccess('');
         setGoogleLoading(true);
         try {
-            const response = await axios.post('http://localhost:5000/api/auth/google', {
+            const response = await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/google`, {
                 credential: credentialResponse.credential,
             });
             const { token, user } = response.data;
@@ -73,7 +73,7 @@ const RegisterPage = () => {
             setSuccess('');
             setLoading(true);
             try {
-                await axios.post('http://localhost:5000/api/auth/register', {
+                await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/register`, {
                     name: values.name,
                     email: values.email,
                     password: values.password,
