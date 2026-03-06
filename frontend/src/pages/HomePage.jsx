@@ -2,6 +2,8 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiVideo, FiFileText, FiArrowRight, FiTrendingUp, FiClock } from 'react-icons/fi';
 import '../HomePage.css';
+import appLogo from '../assets/app-logo.png';
+
 
 const HomePage = () => {
     const navigate = useNavigate();
@@ -13,6 +15,15 @@ const HomePage = () => {
                 <div className="blob blob-2" aria-hidden="true"></div>
                 <div className="blob blob-3" aria-hidden="true"></div>
                 <div className="hero-content">
+                    {/* Platform Logo */}
+                    <div className="hero-logo-wrapper">
+                        <img
+                            src={appLogo}
+                            alt="AI Interview Platform Logo"
+                            className="hero-logo"
+                        />
+                    </div>
+
                     {/* Hero badge */}
                     <div className="hero-badge" aria-hidden="true">
                         <span className="hero-badge-dot"></span>

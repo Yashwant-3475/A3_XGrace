@@ -194,6 +194,30 @@
     align-items: center;
 }
 
+/* ── Hero Logo ────────────────────────────────────────────── */
+.hero-logo-wrapper {
+    margin-bottom: 1.5rem;
+    animation: fadeInUp 0.9s 0s ease-out both;
+}
+
+.hero-logo {
+    width: 96px;
+    height: 96px;
+    border-radius: 22px;
+    object-fit: cover;
+    box-shadow:
+        0 0 32px rgba(124, 58, 237, 0.55),
+        0 0 64px rgba(124, 58, 237, 0.25),
+        0 8px 24px rgba(0, 0, 0, 0.4);
+    animation: pulseGlow 3s ease-in-out infinite;
+    transition: transform 0.3s ease;
+}
+
+.hero-logo:hover {
+    transform: scale(1.06) rotate(-2deg);
+}
+
+
 /* ── Hero Badge ───────────────────────────────────────────── */
 .hero-badge {
     display: inline-flex;
