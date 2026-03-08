@@ -138,13 +138,13 @@ const DashboardPage = () => {
     insightType = 'info';
   }
 
-  const chartData = results
+  const chartData = [...results]
+    .reverse()
     .map((r, index) => ({
       name: `#${index + 1}`,
       score: r.score,
       accuracy: r.accuracy,
-    }))
-    .reverse();
+    }));
 
   return (
     <div>

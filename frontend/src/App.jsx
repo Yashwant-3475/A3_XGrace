@@ -57,7 +57,7 @@ const Navbar = () => {
                         <FiCpu size={22} />
                     </span>
                     <span className="app-navbar__brand-text">
-                        AI<span className="app-navbar__brand-accent">Interview</span>
+                        AI<span className="app-navbar__brand-accent">Interview Platform</span>
                     </span>
                 </Link>
 
