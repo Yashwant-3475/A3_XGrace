@@ -12,6 +12,14 @@ const HistoryPage = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [totalResults, setTotalResults] = useState(0);
 
+    // draftFilters = what the user is currently typing/selecting (not yet applied)
+    const [draftFilters, setDraftFilters] = useState({
+        minScore: '',
+        startDate: '',
+        endDate: '',
+    });
+
+    // filters = the values actually sent to the API (only updated on "Apply Filters")
     const [filters, setFilters] = useState({
         minScore: '',
         startDate: '',
@@ -29,7 +37,7 @@ const HistoryPage = () => {
                 return;
             }
 
-            let url = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/interview/history?page=${page}&limit=5`;
+            let url = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/interview/history?page=${page}&limit=4`;
 
             if (filters.minScore) {
                 url += `&minScore=${filters.minScore}`;
@@ -80,23 +88,23 @@ const HistoryPage = () => {
     }, [fetchHistory]);
 
     const handleFilterChange = (e) => {
-        setFilters({
-            ...filters,
+        // Only update the draft — does NOT trigger any API call
+        setDraftFilters(prev => ({
+            ...prev,
             [e.target.name]: e.target.value,
-        });
+        }));
     };
 
     const applyFilters = () => {
+        // Copy draft into applied filters → triggers fetchHistory via useEffect
+        setFilters({ ...draftFilters });
         setCurrentPage(1);
-        fetchHistory(1);
     };
 
     const clearFilters = () => {
-        setFilters({
-            minScore: '',
-            startDate: '',
-            endDate: '',
-        });
+        const empty = { minScore: '', startDate: '', endDate: '' };
+        setDraftFilters(empty);
+        setFilters(empty);
     };
 
     const handlePrevious = () => {
@@ -151,7 +159,7 @@ const HistoryPage = () => {
                                 type="number"
                                 className="form-control"
                                 name="minScore"
-                                value={filters.minScore}
+                                value={draftFilters.minScore}
                                 onChange={handleFilterChange}
                                 placeholder="e.g., 5"
                                 min="0"
@@ -163,7 +171,7 @@ const HistoryPage = () => {
                                 type="date"
                                 className="form-control"
                                 name="startDate"
-                                value={filters.startDate}
+                                value={draftFilters.startDate}
                                 onChange={handleFilterChange}
                             />
                         </div>
@@ -173,7 +181,7 @@ const HistoryPage = () => {
                                 type="date"
                                 className="form-control"
                                 name="endDate"
-                                value={filters.endDate}
+                                value={draftFilters.endDate}
                                 onChange={handleFilterChange}
                             />
                         </div>
@@ -208,7 +216,7 @@ const HistoryPage = () => {
                                     <div className="card-body">
                                         <div className="d-flex justify-content-between align-items-start mb-3">
                                             <h5 className="card-title mb-0">
-                                                Interview #{totalResults - ((currentPage - 1) * 5 + index)}
+                                                Interview #{(currentPage - 1) * 4 + index + 1}
                                             </h5>
                                             <span className="badge bg-primary">
                                                 {new Date(result.createdAt).toLocaleDateString('en-US', {

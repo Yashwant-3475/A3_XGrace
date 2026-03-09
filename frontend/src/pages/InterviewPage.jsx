@@ -249,7 +249,7 @@ const InterviewPage = () => {
                                                 : 'btn-outline-secondary'
                                             }`}
                                         onClick={() => setCurrentQuestionIndex(index)}
-                                        style={{ width: '40px', height: '40px' }}
+                                        style={{ minWidth: '40px', height: '40px', whiteSpace: 'nowrap' }}
                                     >
                                         {index + 1}
                                     </button>
