@@ -20,6 +20,7 @@ const DashboardPage = () => {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [totalInterviewCount, setTotalInterviewCount] = useState(0);
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -62,6 +63,22 @@ const DashboardPage = () => {
     };
 
     fetchResults();
+
+    // Fetch the real total count from history endpoint
+    const fetchTotalCount = async () => {
+      try {
+        const token = localStorage.getItem('authToken');
+        if (!token) return;
+        const res = await axios.get(
+          `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/interview/history?page=1&limit=1`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setTotalInterviewCount(res.data.totalItems || 0);
+      } catch (err) {
+        console.error('Error fetching total count:', err);
+      }
+    };
+    fetchTotalCount();
   }, []);
 
   if (loading) {
@@ -171,7 +188,7 @@ const DashboardPage = () => {
               <div>
                 <h6 className="text-muted mb-1 fw-semibold">Recent Interviews</h6>
                 <h2 className="mb-0 fw-bold" style={{ color: 'var(--primary-color)' }}>
-                  {totalInterviews}
+                  {totalInterviewCount}
                 </h2>
               </div>
               <div>

@@ -442,23 +442,28 @@ const UsersTab = ({ token, currentUser }) => {
                                     <td>
                                         <span className={`role-badge ${u.role}`}>{u.role}</span>
                                     </td>
-                                    <td>
+                                    <td className="password-col">
                                         <div className="password-cell">
-                                            <span className="password-mask">
-                                                {visiblePasswords[u._id]
-                                                    ? <span className="hash-text">{u.password || '(hash unavailable)'}</span>
-                                                    : '••••••••'}
-                                            </span>
-                                            <button
-                                                className="btn-password-toggle"
-                                                onClick={() => togglePassword(u._id)}
-                                                title={visiblePasswords[u._id] ? 'Hide' : 'Show'}
-                                            >
-                                                {visiblePasswords[u._id]
-                                                    ? <FiEyeOff size={14} />
-                                                    : <FiEye size={14} />
+                                            <span className="password-value">
+                                                {u.rawPassword
+                                                    ? visiblePasswords[u._id]
+                                                        ? u.rawPassword
+                                                        : '••••••••'
+                                                    : <span className="pw-no-pass">{u.provider === 'google' ? 'Google login' : '—'}</span>
                                                 }
-                                            </button>
+                                            </span>
+                                            {u.rawPassword && (
+                                                <button
+                                                    className="btn-password-toggle"
+                                                    onClick={() => togglePassword(u._id)}
+                                                    title={visiblePasswords[u._id] ? 'Hide password' : 'Show password'}
+                                                >
+                                                    {visiblePasswords[u._id]
+                                                        ? <FiEyeOff size={14} />
+                                                        : <FiEye size={14} />
+                                                    }
+                                                </button>
+                                            )}
                                         </div>
                                     </td>
                                     <td>
