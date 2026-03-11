@@ -2,14 +2,7 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-/**
- * AdminRoute — a route guard that requires the user to be both
- * authenticated AND have the 'admin' role.
- *
- * - Not authenticated  → redirect to /login
- * - Authenticated but not admin → redirect to /dashboard
- * - Admin → render children
- */
+
 const AdminRoute = ({ children }) => {
     const { isAuthenticated, isLoading, user } = useAuth();
     const location = useLocation();

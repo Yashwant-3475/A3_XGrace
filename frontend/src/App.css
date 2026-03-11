@@ -632,3 +632,219 @@
   background: var(--primary-color);
   border-radius: 10px;
 }
+
+/* =============================================
+   RESUME ANALYZER – UPLOAD INSTRUCTIONS PANEL
+   ============================================= */
+.resume-instructions-panel {
+  background: rgba(124, 58, 237, 0.07);
+  border: 1px solid rgba(124, 58, 237, 0.22);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+}
+
+.resume-instructions-title {
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  font-size: 0.95rem;
+  letter-spacing: 0.01em;
+}
+
+.resume-instructions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+@media (max-width: 576px) {
+  .resume-instructions-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.resume-instruction-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(124, 58, 237, 0.12);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+}
+
+.resume-instruction-icon {
+  font-size: 1.4rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.resume-instruction-item strong {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #c4b5fd;
+  margin-bottom: 2px;
+}
+
+.resume-instruction-item p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  line-height: 1.3;
+}
+
+/* =============================================
+   RESUME ANALYZER – DRAG & DROP ZONE
+   ============================================= */
+.resume-dropzone {
+  border: 2px dashed rgba(124, 58, 237, 0.4);
+  border-radius: 14px;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  background: rgba(124, 58, 237, 0.03);
+  outline: none;
+}
+
+.resume-dropzone:hover:not(.resume-dropzone--has-file),
+.resume-dropzone:focus:not(.resume-dropzone--has-file) {
+  border-color: var(--primary-color);
+  background: rgba(124, 58, 237, 0.08);
+}
+
+.resume-dropzone--active {
+  border-color: #a855f7;
+  background: rgba(168, 85, 247, 0.12);
+  transform: scale(1.01);
+}
+
+.resume-dropzone--has-file {
+  cursor: default;
+  border-style: solid;
+  border-color: rgba(124, 58, 237, 0.5);
+  background: rgba(124, 58, 237, 0.06);
+  padding: 1.25rem 1.5rem;
+}
+
+/* placeholder (no file) */
+.resume-dropzone-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.resume-dropzone-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(124, 58, 237, 0.12);
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
+  transition: background 0.25s ease;
+}
+
+.resume-dropzone:hover .resume-dropzone-icon,
+.resume-dropzone--active .resume-dropzone-icon {
+  background: rgba(124, 58, 237, 0.22);
+}
+
+.resume-dropzone-primary {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin: 0;
+}
+
+.resume-dropzone-secondary {
+  font-size: 0.88rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.resume-dropzone-browse {
+  color: var(--primary-color);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.resume-dropzone-hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
+  color: #64748b;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  padding: 0.25rem 0.85rem;
+  display: inline-block;
+}
+
+/* file selected preview */
+.resume-file-preview {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  text-align: left;
+}
+
+.resume-file-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);
+}
+
+.resume-file-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.resume-file-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #e2e8f0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resume-file-meta {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin: 0.2rem 0 0;
+}
+
+.resume-file-clear {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  border-radius: 8px;
+  padding: 0.45rem 0.6rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.resume-file-clear:hover {
+  background: rgba(239, 68, 68, 0.22);
+  border-color: rgba(239, 68, 68, 0.6);
+  color: #f87171;
+}
