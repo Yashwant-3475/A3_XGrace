@@ -118,6 +118,24 @@
     overflow: hidden;
 }
 
+/* Particles full-bleed background layer */
+.hero-particles {
+    position: absolute !important;
+    inset: 0;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.hero-particles canvas {
+    position: absolute;
+    inset: 0;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+
 /* Layered ambient mesh overlay */
 .hero-section::before {
     content: '';

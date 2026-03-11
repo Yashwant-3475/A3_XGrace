@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FiVideo, FiFileText, FiArrowRight, FiTrendingUp, FiClock } from 'react-icons/fi';
 import '../HomePage.css';
 import appLogo from '../assets/app-logo.png';
+import Particles from '../components/Particles';
 
 
 const HomePage = () => {
@@ -11,9 +12,21 @@ const HomePage = () => {
     return (
         <div className="home-page">
             <section className="hero-section">
-                <div className="blob blob-1" aria-hidden="true"></div>
-                <div className="blob blob-2" aria-hidden="true"></div>
-                <div className="blob blob-3" aria-hidden="true"></div>
+                {/* Particles background */}
+                <Particles
+                    particleCount={200}
+                    particleSpread={10}
+                    speed={0.1}
+                    particleColors={["#a78bfa", "#7c3aed", "#ffffff"]}
+                    moveParticlesOnHover={false}
+                    particleHoverFactor={1}
+                    alphaParticles={true}
+                    particleBaseSize={80}
+                    sizeRandomness={1}
+                    cameraDistance={20}
+                    disableRotation={false}
+                    className="hero-particles"
+                />
                 <div className="hero-content">
                     {/* Platform Logo */}
                     <div className="hero-logo-wrapper">
