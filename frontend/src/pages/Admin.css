@@ -369,63 +369,17 @@
     transform: none;
 }
 
-/* ── Password Column & Cell ──────────────────────────────── */
-/* Fixed-width column so toggling password never causes layout shift */
-.password-col {
-    width: 180px;
-    min-width: 180px;
-    max-width: 180px;
+/* ── Provider Badges ─────────────────────────────────────── */
+.role-badge.google-provider {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
 }
 
-.password-cell {
-    display: flex;
-    align-items: center;
-    gap: 0.45rem;
-    height: 28px; /* lock row height so it never jumps */
-}
-
-.password-value {
-    font-family: monospace;
-    font-size: 0.85rem;
-    color: #374151;
-    letter-spacing: 0.04em;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    max-width: 130px;
-    display: inline-block;
-    vertical-align: middle;
-    line-height: 28px;
-}
-
-.pw-no-pass {
-    font-family: inherit;
-    font-size: 0.8rem;
-    color: #9ca3af;
-    font-style: italic;
-    letter-spacing: normal;
-}
-
-.btn-password-toggle {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: 1px solid #e5e7eb;
-    color: #9ca3af;
-    cursor: pointer;
-    padding: 3px 5px;
-    border-radius: 5px;
-    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
-    flex-shrink: 0;
-    height: 24px;
-    width: 28px;
-}
-
-.btn-password-toggle:hover {
+.role-badge.local-provider {
+    background: rgba(111, 45, 189, 0.08);
     color: #6F2DBD;
-    border-color: #A663CC;
-    background: rgba(111, 45, 189, 0.06);
+    border: 1px solid rgba(111, 45, 189, 0.25);
 }
 
 /* ── Confirmation Modal ──────────────────────────────────── */

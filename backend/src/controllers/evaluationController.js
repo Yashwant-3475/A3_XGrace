@@ -77,8 +77,9 @@ const evaluateAnswer = async (req, res) => {
         ? parsed.feedback
         : 'No detailed feedback was generated.';
 
-    // 4. Store evaluation result in MongoDB
+    // 4. Store evaluation result in MongoDB, linked to the authenticated user
     const evaluation = await Evaluation.create({
+      user: req.user.id,
       answerText,
       feedback: aiFeedback,
       score: aiScore,
@@ -92,13 +93,13 @@ const evaluateAnswer = async (req, res) => {
   }
 };
 
-// Optional: list past evaluations (could be useful for admin views)
 // @route   GET /api/evaluations
-// @desc    Get all stored AI evaluations
-// @access  Public (for demo)
+// @desc    Get the current user's stored AI evaluations only
+// @access  Private (requires JWT)
 const getEvaluations = async (req, res) => {
   try {
-    const evaluations = await Evaluation.find({}).sort({ createdAt: -1 });
+    // Only return evaluations belonging to the authenticated user
+    const evaluations = await Evaluation.find({ user: req.user.id }).sort({ createdAt: -1 });
     res.json(evaluations);
   } catch (error) {
     console.error('Get evaluations error:', error.message);

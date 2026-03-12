@@ -62,7 +62,6 @@ const register = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      rawPassword: password, // stored for admin audit view
       role: role || 'user',
     });
 

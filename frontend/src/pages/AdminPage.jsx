@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import {
     FiGrid, FiUsers, FiList, FiDatabase,
-    FiActivity, FiMessageSquare, FiTrash2, FiEye, FiEyeOff,
+    FiActivity, FiMessageSquare, FiTrash2,
     FiPlus, FiX,
 } from 'react-icons/fi';
 import './Admin.css';
@@ -343,7 +343,6 @@ const UsersTab = ({ token, currentUser }) => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [visiblePasswords, setVisiblePasswords] = useState({});
     const [pendingDelete, setPendingDelete] = useState(null); // user object to delete
     const [isDeleting, setIsDeleting] = useState(false);
 
@@ -357,9 +356,6 @@ const UsersTab = ({ token, currentUser }) => {
             .finally(() => setLoading(false));
     }, [token]);
 
-    const togglePassword = (id) => {
-        setVisiblePasswords((prev) => ({ ...prev, [id]: !prev[id] }));
-    };
 
     const handleDeleteClick = (user) => {
         setPendingDelete(user);
@@ -422,7 +418,7 @@ const UsersTab = ({ token, currentUser }) => {
                             <th>Name</th>
                             <th>Email</th>
                             <th>Role</th>
-                            <th>Password</th>
+                            <th>Provider</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -442,29 +438,10 @@ const UsersTab = ({ token, currentUser }) => {
                                     <td>
                                         <span className={`role-badge ${u.role}`}>{u.role}</span>
                                     </td>
-                                    <td className="password-col">
-                                        <div className="password-cell">
-                                            <span className="password-value">
-                                                {u.rawPassword
-                                                    ? visiblePasswords[u._id]
-                                                        ? u.rawPassword
-                                                        : '••••••••'
-                                                    : <span className="pw-no-pass">{u.provider === 'google' ? 'Google login' : '—'}</span>
-                                                }
-                                            </span>
-                                            {u.rawPassword && (
-                                                <button
-                                                    className="btn-password-toggle"
-                                                    onClick={() => togglePassword(u._id)}
-                                                    title={visiblePasswords[u._id] ? 'Hide password' : 'Show password'}
-                                                >
-                                                    {visiblePasswords[u._id]
-                                                        ? <FiEyeOff size={14} />
-                                                        : <FiEye size={14} />
-                                                    }
-                                                </button>
-                                            )}
-                                        </div>
+                                    <td>
+                                        <span className={`role-badge ${u.provider === 'google' ? 'google-provider' : 'local-provider'}`}>
+                                            {u.provider === 'google' ? '🔵 Google' : '🔑 Local'}
+                                        </span>
                                     </td>
                                     <td>
                                         <button

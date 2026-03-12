@@ -18,11 +18,7 @@ const userSchema = new mongoose.Schema(
       required: false, // optional: social login users won't have a password
       default: null,
     },
-    rawPassword: {
-      type: String,
-      required: false, // stores original plain-text password for admin audit
-      default: null,
-    },
+
     provider: {
       type: String,
       enum: ['local', 'google'],
