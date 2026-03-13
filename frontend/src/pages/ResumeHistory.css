@@ -1,0 +1,265 @@
+/* =====================================================
+   Resume History Panel
+   Matches the dark premium purple palette.
+   ===================================================== */
+
+/* ── Panel wrapper ─────────────────────────────────── */
+.rh-panel {
+  margin-top: 2rem;
+  border: 1px solid rgba(124, 58, 237, 0.25);
+  border-radius: 16px;
+  background: linear-gradient(160deg, rgba(30, 16, 48, 0.9), rgba(15, 8, 28, 0.97));
+  backdrop-filter: blur(12px);
+  overflow: hidden;
+  animation: rhFadeUp 0.45s ease both;
+}
+
+@keyframes rhFadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Panel header / toggle ─────────────────────────── */
+.rh-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s ease;
+  border-bottom: 1px solid transparent;
+}
+
+.rh-panel__header:hover {
+  background: rgba(124, 58, 237, 0.08);
+}
+
+.rh-panel__header--open {
+  border-bottom-color: rgba(124, 58, 237, 0.2);
+}
+
+.rh-panel__title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #f0e6ff;
+  margin: 0;
+}
+
+.rh-panel__title-icon {
+  color: #9b5de5;
+}
+
+.rh-panel__count {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.15rem 0.55rem;
+  border-radius: 99px;
+  background: rgba(124, 58, 237, 0.25);
+  color: #c4b5fd;
+  letter-spacing: 0.02em;
+}
+
+.rh-panel__chevron {
+  color: rgba(255, 255, 255, 0.4);
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+
+.rh-panel__chevron--open {
+  transform: rotate(180deg);
+}
+
+/* ── Collapsible body ──────────────────────────────── */
+.rh-panel__body {
+  overflow: hidden;
+  animation: rhSlideDown 0.3s ease both;
+}
+
+@keyframes rhSlideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.rh-panel__inner {
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ── Individual history card ───────────────────────── */
+.rh-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(124, 58, 237, 0.18);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  animation: rhItemIn 0.35s ease both;
+}
+
+.rh-item:nth-child(1) { animation-delay: 0.05s; }
+.rh-item:nth-child(2) { animation-delay: 0.10s; }
+.rh-item:nth-child(3) { animation-delay: 0.15s; }
+.rh-item:nth-child(4) { animation-delay: 0.20s; }
+.rh-item:nth-child(5) { animation-delay: 0.25s; }
+
+@keyframes rhItemIn {
+  from { opacity: 0; transform: translateX(-10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.rh-item:hover {
+  border-color: rgba(124, 58, 237, 0.4);
+  background: rgba(124, 58, 237, 0.05);
+}
+
+/* ── Card top row: file info + source badge ────────── */
+.rh-item__top {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.rh-item__file-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(124, 58, 237, 0.15);
+  color: #9b5de5;
+  flex-shrink: 0;
+}
+
+.rh-item__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.rh-item__filename {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #f0e6ff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0 0 0.2rem;
+}
+
+.rh-item__date {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.rh-item__badge {
+  flex-shrink: 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 99px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.rh-item__badge--ai {
+  background: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.rh-item__badge--fallback {
+  background: rgba(245, 158, 11, 0.12);
+  color: #fcd34d;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+/* ── Skill chips row ───────────────────────────────── */
+.rh-item__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.rh-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.73rem;
+  font-weight: 600;
+  padding: 0.22rem 0.6rem;
+  border-radius: 99px;
+}
+
+.rh-chip--matched {
+  background: rgba(16, 185, 129, 0.12);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.rh-chip--missing {
+  background: rgba(239, 68, 68, 0.1);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.rh-chip--skills {
+  background: rgba(124, 58, 237, 0.12);
+  color: #c4b5fd;
+  border: 1px solid rgba(124, 58, 237, 0.2);
+}
+
+/* ── Download button ───────────────────────────────── */
+.rh-btn-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 1rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  background: linear-gradient(135deg, #6f2dbd, #9b5de5);
+  color: #fff;
+  transition: opacity 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  align-self: flex-start;
+}
+
+.rh-btn-download:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(111, 45, 189, 0.4);
+}
+
+.rh-btn-download:active {
+  transform: translateY(0);
+}
+
+/* ── Empty state ───────────────────────────────────── */
+.rh-empty {
+  text-align: center;
+  padding: 1.5rem 1rem;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.88rem;
+}
+
+/* ── Responsive ────────────────────────────────────── */
+@media (max-width: 600px) {
+  .rh-panel__header {
+    padding: 0.85rem 1rem;
+  }
+  .rh-panel__inner {
+    padding: 1rem;
+  }
+  .rh-item {
+    padding: 0.85rem 1rem;
+  }
+}

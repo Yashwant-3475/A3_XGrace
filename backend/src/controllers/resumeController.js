@@ -3,19 +3,11 @@ const fs = require('fs');
 const Resume = require('../models/Resume');
 const { analyzeResumeText } = require('../services/resumeService');
 
-// Upload works as before
-const uploadResume = (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ message: 'No file uploaded' });
-  }
+const HISTORY_LIMIT = 5; // Max resume analyses stored per user
 
-  return res.status(200).json({
-    message: 'Resume uploaded successfully',
-    filename: req.file.originalname,
-  });
-};
-
-// Hybrid AI + Fallback analyzer (never throws)
+// @route   POST /api/resume/analyze
+// @desc    Analyze a resume PDF, save to DB (linked to user), enforce 5-record limit
+// @access  Private (authMiddleware required)
 const analyzeResume = async (req, res) => {
   console.log('📄 Resume analysis endpoint hit');
 
@@ -36,7 +28,6 @@ const analyzeResume = async (req, res) => {
       console.log(`✅ Extracted ${resumeText.length} characters from PDF`);
     } catch (pdfError) {
       console.error('❌ PDF parsing failed:', pdfError.message);
-      // Clean up uploaded file
       fs.unlinkSync(filePath);
       return res.status(400).json({
         status: 'error',
@@ -47,27 +38,46 @@ const analyzeResume = async (req, res) => {
     // 3. Analyze resume using hybrid service (AI + fallback)
     const analysis = await analyzeResumeText(resumeText);
 
-    // 4. Save to database
+    // 4. Save to database, linked to the logged-in user
+    let savedId = null;
     try {
       const resumeRecord = new Resume({
+        userId: req.user.id,                          // ← link to user
         filename: req.file.originalname,
-        resumeText: resumeText.substring(0, 5000), // Store first 5000 chars
+        resumeText: resumeText.substring(0, 5000),
         analysis,
         analysisSource: analysis.analysisSource,
       });
-      await resumeRecord.save();
+      const saved = await resumeRecord.save();
+      savedId = saved._id;
       console.log('💾 Resume analysis saved to database');
+
+      // 5. Enforce 5-record limit — delete oldest if over the cap
+      const count = await Resume.countDocuments({ userId: req.user.id });
+      if (count > HISTORY_LIMIT) {
+        const oldest = await Resume.findOne(
+          { userId: req.user.id },
+          '_id',
+          { sort: { createdAt: 1 } }           // oldest first
+        );
+        if (oldest) {
+          await Resume.findByIdAndDelete(oldest._id);
+          console.log(`🗑️  Deleted oldest resume record (limit ${HISTORY_LIMIT} enforced)`);
+        }
+      }
     } catch (dbError) {
       console.error('⚠️ Database save failed:', dbError.message);
-      // Continue anyway - don't fail the request
+      // Continue anyway — don't fail the whole request
     }
 
-    // 5. Clean up uploaded file
+    // 6. Clean up uploaded file from disk
     fs.unlinkSync(filePath);
 
-    // 6. Return analysis to frontend
+    // 7. Return analysis to frontend
     return res.status(200).json({
       status: 'success',
+      id: savedId,
+      filename: req.file.originalname,
       analysisType: analysis.analysisSource.toLowerCase(),
       matchedSkills: analysis.matchedSkills || [],
       missingSkills: analysis.missingSkills || [],
@@ -84,12 +94,9 @@ const analyzeResume = async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Resume analysis error:', error);
-
-    // Clean up file if it still exists
     if (req.file && req.file.path && fs.existsSync(req.file.path)) {
       fs.unlinkSync(req.file.path);
     }
-
     return res.status(500).json({
       status: 'error',
       message: 'An error occurred during resume analysis. Please try again.',
@@ -97,8 +104,26 @@ const analyzeResume = async (req, res) => {
   }
 };
 
-module.exports = {
-  uploadResume,
-  analyzeResume,
+// @route   GET /api/resume/history
+// @desc    Get the last 5 resume analyses for the logged-in user
+// @access  Private
+const getResumeHistory = async (req, res) => {
+  try {
+    const records = await Resume.find(
+      { userId: req.user.id },
+      'filename analysisSource analysis createdAt'  // only send needed fields
+    )
+      .sort({ createdAt: -1 })   // newest first
+      .limit(HISTORY_LIMIT);
+
+    return res.status(200).json({ history: records });
+  } catch (error) {
+    console.error('❌ Get resume history error:', error.message);
+    return res.status(500).json({ message: 'Failed to fetch resume history.' });
+  }
 };
 
+module.exports = {
+  analyzeResume,
+  getResumeHistory,
+};

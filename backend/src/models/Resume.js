@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
 
-// Resume model to store resume analysis data
 const resumeSchema = new mongoose.Schema(
     {
         userId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
-            required: false, // Optional - may not be authenticated
+            required: true, // All analyses must be tied to a logged-in user
+            index: true,    // Index for fast per-user queries
         },
         filename: {
             type: String,
@@ -33,7 +33,7 @@ const resumeSchema = new mongoose.Schema(
         },
     },
     {
-        timestamps: true, // Automatically adds createdAt and updatedAt
+        timestamps: true, // createdAt, updatedAt
     }
 );
 

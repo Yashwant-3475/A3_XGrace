@@ -1,37 +1,280 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { jsPDF } from 'jspdf';
 import api from '../api';
 import {
   FiFileText, FiUpload, FiCheckCircle, FiXCircle,
-  FiAlertCircle, FiInfo, FiTrash2, FiFile
+  FiAlertCircle, FiInfo, FiTrash2, FiFile,
+  FiClock, FiDownload, FiChevronDown
 } from 'react-icons/fi';
+import './ResumeHistory.css';
 
-/* ---- constants that must match the backend multer config ---- */
-const ALLOWED_MIME = 'application/pdf';
-const ALLOWED_EXT  = '.pdf';
+/* ---- constants ---- */
+const ALLOWED_MIME  = 'application/pdf';
+const ALLOWED_EXT   = '.pdf';
 const MAX_SIZE_MB   = 5;
 const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+const HISTORY_LIMIT = 5;
 
+/* ---- PDF report generator (runs entirely in-browser) ---- */
+const generatePDF = (item) => {
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const PW = 210; // page width
+  const M  = 18;  // margin
+  const CW = PW - M * 2; // content width
+  let y = M;
+
+  const nextLine = (gap = 6) => { y += gap; };
+  const checkPage = (need = 10) => {
+    if (y + need > 285) { doc.addPage(); y = M; }
+  };
+
+  // ── Header bar ──
+  doc.setFillColor(111, 45, 189);
+  doc.rect(0, 0, PW, 22, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.setTextColor(255, 255, 255);
+  doc.text('Resume Analysis Report', M, 14);
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Generated: ${new Date().toLocaleString()}`, PW - M, 14, { align: 'right' });
+  y = 30;
+
+  // ── File metadata ──
+  doc.setTextColor(30, 16, 48);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.text(`File: ${item.filename}`, M, y);
+  nextLine(5);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(100, 100, 120);
+  doc.text(`Analyzed: ${new Date(item.createdAt).toLocaleString()}   |   Source: ${item.analysisSource}`, M, y);
+  nextLine(10);
+
+  // ── Section helper ──
+  const section = (title, items, color = [111, 45, 189]) => {
+    checkPage(16);
+    doc.setFillColor(...color);
+    doc.roundedRect(M, y, CW, 8, 2, 2, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(255, 255, 255);
+    doc.text(title.toUpperCase(), M + 4, y + 5.5);
+    nextLine(11);
+    if (!items || items.length === 0) {
+      checkPage(8);
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(9);
+      doc.setTextColor(150, 150, 160);
+      doc.text('None listed.', M + 4, y);
+      nextLine(8);
+      return;
+    }
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(40, 30, 60);
+    items.forEach((item) => {
+      checkPage(7);
+      const lines = doc.splitTextToSize(`• ${item}`, CW - 6);
+      lines.forEach((l) => {
+        doc.text(l, M + 4, y);
+        nextLine(5);
+      });
+    });
+    nextLine(3);
+  };
+
+  const textSection = (title, text, color = [111, 45, 189]) => {
+    checkPage(16);
+    doc.setFillColor(...color);
+    doc.roundedRect(M, y, CW, 8, 2, 2, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(255, 255, 255);
+    doc.text(title.toUpperCase(), M + 4, y + 5.5);
+    nextLine(11);
+    if (!text) {
+      checkPage(8);
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(9);
+      doc.setTextColor(150, 150, 160);
+      doc.text('Not available.', M + 4, y);
+      nextLine(8);
+      return;
+    }
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(40, 30, 60);
+    const lines = doc.splitTextToSize(text, CW - 6);
+    lines.forEach((l) => {
+      checkPage(6);
+      doc.text(l, M + 4, y);
+      nextLine(5);
+    });
+    nextLine(3);
+  };
+
+  const a = item.analysis || {};
+  section('Matched Skills',          a.matchedSkills,         [22, 163, 74]);
+  section('Missing Skills',          a.missingSkills,         [220, 38, 38]);
+  section('All Detected Skills',     a.skills,                [111, 45, 189]);
+  textSection('Experience Summary',  a.experienceSummary,     [79, 70, 229]);
+  textSection('Role Suitability',    a.roleSuitability,       [79, 70, 229]);
+  section('Strengths',               a.strengths,             [22, 163, 74]);
+  section('Weak Areas',              a.weakAreas,             [220, 38, 38]);
+  section('Improvement Suggestions', a.improvementSuggestions,[245, 158, 11]);
+
+  // ── Footer ──
+  const totalPages = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    doc.setFontSize(7);
+    doc.setTextColor(160, 160, 180);
+    doc.text(`AI Interview Platform — Resume Report  |  Page ${i} of ${totalPages}`, PW / 2, 292, { align: 'center' });
+  }
+
+  const safeName = (item.filename || 'resume').replace(/\.pdf$/i, '');
+  doc.save(`${safeName}_analysis_report.pdf`);
+};
+
+/* ════════════════════════════════════════════════════════
+   HISTORY PANEL component
+   ════════════════════════════════════════════════════════ */
+const HistoryPanel = ({ history }) => {
+  const [open, setOpen] = useState(true);
+
+  if (!history || history.length === 0) return null;
+
+  const formatDate = (iso) =>
+    new Date(iso).toLocaleDateString('en-IN', {
+      day: '2-digit', month: 'short', year: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+    });
+
+  return (
+    <div className="rh-panel">
+      {/* Toggle header */}
+      <div
+        className={`rh-panel__header${open ? ' rh-panel__header--open' : ''}`}
+        onClick={() => setOpen((v) => !v)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => e.key === 'Enter' && setOpen((v) => !v)}
+        aria-expanded={open}
+      >
+        <h3 className="rh-panel__title">
+          <FiClock className="rh-panel__title-icon" size={18} />
+          Resume History
+          <span className="rh-panel__count">{history.length} / {HISTORY_LIMIT}</span>
+        </h3>
+        <FiChevronDown
+          className={`rh-panel__chevron${open ? ' rh-panel__chevron--open' : ''}`}
+          size={18}
+        />
+      </div>
+
+      {/* Collapsible body */}
+      {open && (
+        <div className="rh-panel__body">
+          <div className="rh-panel__inner">
+            {history.map((item) => {
+              const a = item.analysis || {};
+              return (
+                <div className="rh-item" key={item._id}>
+                  {/* Top row */}
+                  <div className="rh-item__top">
+                    <div className="rh-item__file-icon">
+                      <FiFile size={20} />
+                    </div>
+                    <div className="rh-item__info">
+                      <p className="rh-item__filename">{item.filename}</p>
+                      <p className="rh-item__date">{formatDate(item.createdAt)}</p>
+                    </div>
+                    <span className={`rh-item__badge rh-item__badge--${item.analysisSource === 'AI' ? 'ai' : 'fallback'}`}>
+                      {item.analysisSource}
+                    </span>
+                  </div>
+
+                  {/* Skill count chips */}
+                  <div className="rh-item__chips">
+                    {(a.matchedSkills?.length > 0) && (
+                      <span className="rh-chip rh-chip--matched">
+                        <FiCheckCircle size={11} />
+                        {a.matchedSkills.length} matched
+                      </span>
+                    )}
+                    {(a.missingSkills?.length > 0) && (
+                      <span className="rh-chip rh-chip--missing">
+                        <FiXCircle size={11} />
+                        {a.missingSkills.length} missing
+                      </span>
+                    )}
+                    {(a.skills?.length > 0) && (
+                      <span className="rh-chip rh-chip--skills">
+                        <FiFileText size={11} />
+                        {a.skills.length} skills detected
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Download button */}
+                  <button
+                    className="rh-btn-download"
+                    onClick={() => generatePDF(item)}
+                    title="Download analysis as PDF"
+                  >
+                    <FiDownload size={13} />
+                    Download Report
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ════════════════════════════════════════════════════════
+   MAIN PAGE
+   ════════════════════════════════════════════════════════ */
 const ResumeAnalyzerPage = () => {
   const [file, setFile]         = useState(null);
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState('');
   const [analysis, setAnalysis] = useState(null);
   const [dragOver, setDragOver] = useState(false);
+  const [history, setHistory]   = useState([]);
 
   const fileInputRef = useRef(null);
+
+  /* ── Fetch history on mount ── */
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const res = await api.get('/resume/history');
+        setHistory(res.data.history || []);
+      } catch (err) {
+        // silently ignore — user may not be logged in or history is empty
+        console.warn('Could not load resume history:', err.message);
+      }
+    };
+    fetchHistory();
+  }, []);
 
   /* ---- client-side validation ---- */
   const validateFile = (f) => {
     if (!f) return 'Please select a file.';
     const ext = f.name.toLowerCase().slice(f.name.lastIndexOf('.'));
-    if (f.type !== ALLOWED_MIME && ext !== ALLOWED_EXT) {
+    if (f.type !== ALLOWED_MIME && ext !== ALLOWED_EXT)
       return `Invalid file type "${f.type || ext}". Only PDF files are accepted.`;
-    }
     if (f.size > MAX_SIZE_BYTES) {
       const sizeMB = (f.size / 1024 / 1024).toFixed(2);
       return `File is too large (${sizeMB} MB). Maximum allowed size is ${MAX_SIZE_MB} MB.`;
     }
-    return null; // valid
+    return null;
   };
 
   const applyFile = (f) => {
@@ -42,32 +285,24 @@ const ResumeAnalyzerPage = () => {
     setFile(f);
   };
 
-  /* ---- native input change ---- */
-  const handleFileChange = (e) => applyFile(e.target.files[0] || null);
-
-  /* ---- drag-and-drop ---- */
-  const handleDragOver  = useCallback((e) => { e.preventDefault(); setDragOver(true);  }, []);
-  const handleDragLeave = useCallback((e) => { e.preventDefault(); setDragOver(false); }, []);
-  const handleDrop      = useCallback((e) => {
-    e.preventDefault();
-    setDragOver(false);
+  const handleFileChange  = (e) => applyFile(e.target.files[0] || null);
+  const handleDragOver    = useCallback((e) => { e.preventDefault(); setDragOver(true);  }, []);
+  const handleDragLeave   = useCallback((e) => { e.preventDefault(); setDragOver(false); }, []);
+  const handleDrop        = useCallback((e) => {
+    e.preventDefault(); setDragOver(false);
     applyFile(e.dataTransfer.files[0] || null);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const clearFile = () => {
-    setFile(null);
-    setError('');
-    setAnalysis(null);
+    setFile(null); setError(''); setAnalysis(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   /* ---- submit ---- */
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setAnalysis(null);
-
+    setError(''); setAnalysis(null);
     const clientErr = validateFile(file);
     if (clientErr) { setError(clientErr); return; }
 
@@ -81,22 +316,38 @@ const ResumeAnalyzerPage = () => {
       });
 
       if (response.data.status === 'success') {
-        setAnalysis(response.data);
+        const result = response.data;
+        setAnalysis(result);
+
+        // Prepend to history (optimistic update) and enforce limit
+        const newRecord = {
+          _id: result.id || Date.now().toString(),
+          filename: result.filename || file.name,
+          createdAt: new Date().toISOString(),
+          analysisSource: result.analysisType?.toUpperCase() === 'AI' ? 'AI' : 'FALLBACK',
+          analysis: {
+            matchedSkills: result.matchedSkills,
+            missingSkills: result.missingSkills,
+            skills: result.skills,
+            experienceSummary: result.experienceSummary,
+            roleSuitability: result.roleSuitability,
+            strengths: result.strengths,
+            weakAreas: result.weakAreas,
+            improvementSuggestions: result.improvementSuggestions,
+          },
+        };
+        setHistory((prev) => [newRecord, ...prev].slice(0, HISTORY_LIMIT));
       } else {
         throw new Error(response.data.message || 'Analysis failed');
       }
     } catch (err) {
       console.error('Analysis error:', err);
-      setError(
-        err.response?.data?.message ||
-        'Failed to analyze resume. Please try again.'
-      );
+      setError(err.response?.data?.message || 'Failed to analyze resume. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  /* ---- helpers ---- */
   const formatBytes = (bytes) => {
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -109,17 +360,14 @@ const ResumeAnalyzerPage = () => {
 
         {/* ---- Header ---- */}
         <div className="text-center mb-4">
-          <div
-            className="d-inline-block p-3 rounded-circle mb-3"
-            style={{ background: 'var(--primary-color)' }}
-          >
+          <div className="d-inline-block p-3 rounded-circle mb-3" style={{ background: 'var(--primary-color)' }}>
             <FiFileText size={32} color="white" />
           </div>
           <h2 className="fw-bold gradient-text">Resume Analyzer</h2>
           <p className="text-muted">Upload your resume to get instant skill analysis</p>
         </div>
 
-        {/* ---- Upload Instructions Panel ---- */}
+        {/* ---- Upload Guidelines ---- */}
         <div className="resume-instructions-panel mb-4">
           <h6 className="resume-instructions-title">
             <FiInfo size={16} className="me-2" />
@@ -128,31 +376,19 @@ const ResumeAnalyzerPage = () => {
           <div className="resume-instructions-grid">
             <div className="resume-instruction-item">
               <span className="resume-instruction-icon">📄</span>
-              <div>
-                <strong>File Format</strong>
-                <p>PDF only (.pdf)</p>
-              </div>
+              <div><strong>File Format</strong><p>PDF only (.pdf)</p></div>
             </div>
             <div className="resume-instruction-item">
               <span className="resume-instruction-icon">📦</span>
-              <div>
-                <strong>Max File Size</strong>
-                <p>{MAX_SIZE_MB} MB</p>
-              </div>
+              <div><strong>Max File Size</strong><p>{MAX_SIZE_MB} MB</p></div>
             </div>
             <div className="resume-instruction-item">
               <span className="resume-instruction-icon">🔒</span>
-              <div>
-                <strong>Privacy</strong>
-                <p>File deleted after analysis</p>
-              </div>
+              <div><strong>Privacy</strong><p>File deleted after analysis</p></div>
             </div>
             <div className="resume-instruction-item">
               <span className="resume-instruction-icon">✅</span>
-              <div>
-                <strong>Best Results</strong>
-                <p>Use text-based (non-scanned) PDF</p>
-              </div>
+              <div><strong>Best Results</strong><p>Use text-based (non-scanned) PDF</p></div>
             </div>
           </div>
         </div>
@@ -169,8 +405,6 @@ const ResumeAnalyzerPage = () => {
         <div className="card shadow-lg border-0 mb-4">
           <div className="card-body p-4">
             <form onSubmit={handleSubmit}>
-
-              {/* Drag-and-drop zone */}
               <div
                 className={`resume-dropzone${dragOver ? ' resume-dropzone--active' : ''}${file ? ' resume-dropzone--has-file' : ''}`}
                 onDragOver={handleDragOver}
@@ -182,48 +416,31 @@ const ResumeAnalyzerPage = () => {
                 onKeyDown={(e) => e.key === 'Enter' && !file && fileInputRef.current?.click()}
               >
                 {file ? (
-                  /* ---- File selected preview ---- */
                   <div className="resume-file-preview">
-                    <div className="resume-file-icon">
-                      <FiFile size={36} />
-                    </div>
+                    <div className="resume-file-icon"><FiFile size={36} /></div>
                     <div className="resume-file-info">
                       <p className="resume-file-name">{file.name}</p>
-                      <p className="resume-file-meta">
-                        {formatBytes(file.size)}
-                        &nbsp;&bull;&nbsp;PDF Document
-                      </p>
+                      <p className="resume-file-meta">{formatBytes(file.size)}&nbsp;&bull;&nbsp;PDF Document</p>
                     </div>
                     <button
                       type="button"
                       className="resume-file-clear"
                       onClick={(e) => { e.stopPropagation(); clearFile(); }}
                       title="Remove file"
-                      aria-label="Remove selected file"
                     >
                       <FiTrash2 size={18} />
                     </button>
                   </div>
                 ) : (
-                  /* ---- Empty drop zone ---- */
                   <div className="resume-dropzone-placeholder">
-                    <div className="resume-dropzone-icon">
-                      <FiUpload size={32} />
-                    </div>
-                    <p className="resume-dropzone-primary">
-                      Drag &amp; drop your PDF here
-                    </p>
-                    <p className="resume-dropzone-secondary">
-                      or <span className="resume-dropzone-browse">browse to upload</span>
-                    </p>
-                    <p className="resume-dropzone-hint">
-                      PDF only &bull; Max {MAX_SIZE_MB} MB
-                    </p>
+                    <div className="resume-dropzone-icon"><FiUpload size={32} /></div>
+                    <p className="resume-dropzone-primary">Drag &amp; drop your PDF here</p>
+                    <p className="resume-dropzone-secondary">or <span className="resume-dropzone-browse">browse to upload</span></p>
+                    <p className="resume-dropzone-hint">PDF only &bull; Max {MAX_SIZE_MB} MB</p>
                   </div>
                 )}
               </div>
 
-              {/* Hidden native file input */}
               <input
                 ref={fileInputRef}
                 type="file"
@@ -234,7 +451,6 @@ const ResumeAnalyzerPage = () => {
                 disabled={loading}
               />
 
-              {/* Submit button */}
               <button
                 type="submit"
                 className="btn btn-primary btn-lg d-flex align-items-center mt-3"
@@ -242,11 +458,7 @@ const ResumeAnalyzerPage = () => {
               >
                 {loading ? (
                   <>
-                    <span
-                      className="spinner-border spinner-border-sm me-2"
-                      role="status"
-                      aria-hidden="true"
-                    />
+                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />
                     Analyzing…
                   </>
                 ) : (
@@ -267,79 +479,55 @@ const ResumeAnalyzerPage = () => {
               <FiCheckCircle className="me-2 flex-shrink-0" size={24} />
               <div>
                 <strong>Analysis Type:</strong> {analysis.analysisType}
-                {analysis.note && (
-                  <div className="small text-muted mt-1">{analysis.note}</div>
-                )}
+                {analysis.note && <div className="small text-muted mt-1">{analysis.note}</div>}
               </div>
             </div>
 
             <div className="row">
-              {/* Matched Skills */}
               <div className="col-md-6 mb-4">
                 <div className="card border-0 shadow">
-                  <div
-                    className="card-header text-white"
-                    style={{ background: 'var(--primary-color)' }}
-                  >
+                  <div className="card-header text-white" style={{ background: 'var(--primary-color)' }}>
                     <h5 className="mb-0 d-flex align-items-center">
-                      <FiCheckCircle className="me-2" />
-                      Matched Skills
+                      <FiCheckCircle className="me-2" /> Matched Skills
                     </h5>
                   </div>
                   <div className="card-body">
                     {analysis.matchedSkills.length > 0 ? (
                       <div className="d-flex flex-wrap gap-2">
                         {analysis.matchedSkills.map((skill, i) => (
-                          <span
-                            key={i}
-                            className="badge bg-success"
-                            style={{ fontSize: '0.9rem', padding: '0.5rem 1rem', fontWeight: 500 }}
-                          >
-                            <FiCheckCircle className="me-1" size={14} />
-                            {skill}
+                          <span key={i} className="badge bg-success" style={{ fontSize: '0.9rem', padding: '0.5rem 1rem', fontWeight: 500 }}>
+                            <FiCheckCircle className="me-1" size={14} />{skill}
                           </span>
                         ))}
                       </div>
                     ) : (
                       <p className="text-muted mb-0 d-flex align-items-center">
-                        <FiAlertCircle className="me-2" />
-                        No skills matched.
+                        <FiAlertCircle className="me-2" /> No skills matched.
                       </p>
                     )}
                   </div>
                 </div>
               </div>
 
-              {/* Missing Skills */}
               <div className="col-md-6 mb-4">
                 <div className="card border-0 shadow">
-                  <div
-                    className="card-header text-white"
-                    style={{ background: 'var(--secondary-color)' }}
-                  >
+                  <div className="card-header text-white" style={{ background: 'var(--secondary-color)' }}>
                     <h5 className="mb-0 d-flex align-items-center">
-                      <FiXCircle className="me-2" />
-                      Missing Skills
+                      <FiXCircle className="me-2" /> Missing Skills
                     </h5>
                   </div>
                   <div className="card-body">
                     {analysis.missingSkills.length > 0 ? (
                       <div className="d-flex flex-wrap gap-2">
                         {analysis.missingSkills.map((skill, i) => (
-                          <span
-                            key={i}
-                            className="badge bg-warning text-dark"
-                            style={{ fontSize: '0.9rem', padding: '0.5rem 1rem', fontWeight: 500 }}
-                          >
-                            <FiXCircle className="me-1" size={14} />
-                            {skill}
+                          <span key={i} className="badge bg-warning text-dark" style={{ fontSize: '0.9rem', padding: '0.5rem 1rem', fontWeight: 500 }}>
+                            <FiXCircle className="me-1" size={14} />{skill}
                           </span>
                         ))}
                       </div>
                     ) : (
                       <p className="text-muted mb-0 d-flex align-items-center">
-                        <FiCheckCircle className="me-2" />
-                        No missing skills found.
+                        <FiCheckCircle className="me-2" /> No missing skills found.
                       </p>
                     )}
                   </div>
@@ -348,6 +536,10 @@ const ResumeAnalyzerPage = () => {
             </div>
           </div>
         )}
+
+        {/* ---- Resume History Panel ---- */}
+        <HistoryPanel history={history} />
+
       </div>
     </div>
   );

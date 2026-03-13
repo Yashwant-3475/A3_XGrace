@@ -14,6 +14,7 @@ import InterviewPage from './pages/InterviewPage.jsx';
 import InterviewResultPage from './pages/InterviewResultPage.jsx';
 import InterviewReportPage from './pages/InterviewReportPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
+import NotFoundPage from './pages/NotFoundPage.jsx';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import AdminPage from './pages/AdminPage.jsx';
@@ -274,6 +275,7 @@ const App = () => {
                             </AdminRoute>
                         }
                     />
+                    <Route path="*" element={<NotFoundPage />} />
                 </Routes>
             </div>
             <ToastContainer
