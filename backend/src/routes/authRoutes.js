@@ -1,5 +1,6 @@
 const express = require('express');
-const { register, login, validateToken, googleAuth } = require('../controllers/authController');
+const { register, login, validateToken, googleAuth, updateProfile } = require('../controllers/authController');
+const authMiddleware = require('../middleware/authMiddleware');
 
 // Create a new router object
 const router = express.Router();
@@ -19,6 +20,10 @@ router.get('/validate', validateToken);
 // Route for Google OAuth sign-in / sign-up
 // POST /api/auth/google
 router.post('/google', googleAuth);
+
+// Route for updating user profile (name and/or password)
+// PUT /api/auth/profile  (Protected)
+router.put('/profile', authMiddleware, updateProfile);
 
 module.exports = router;
 

@@ -1,6 +1,6 @@
 import { Routes, Route, useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import HomePage from './pages/HomePage.jsx';
@@ -13,10 +13,11 @@ import InterviewRolePage from './pages/InterviewRolePage.jsx';
 import InterviewPage from './pages/InterviewPage.jsx';
 import InterviewResultPage from './pages/InterviewResultPage.jsx';
 import InterviewReportPage from './pages/InterviewReportPage.jsx';
+import ProfilePage from './pages/ProfilePage.jsx';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import AdminPage from './pages/AdminPage.jsx';
-import { FiLogOut, FiLogIn, FiUserPlus, FiFileText, FiVideo, FiBarChart2, FiShield, FiMenu, FiX, FiCpu } from 'react-icons/fi';
+import { FiLogOut, FiLogIn, FiUserPlus, FiFileText, FiVideo, FiBarChart2, FiShield, FiMenu, FiX, FiCpu, FiUser, FiChevronDown } from 'react-icons/fi';
 import './App.css';
 
 const Navbar = () => {
@@ -25,6 +26,8 @@ const Navbar = () => {
     const location = useLocation();
     const [menuOpen, setMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const dropdownRef = useRef(null);
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -33,7 +36,18 @@ const Navbar = () => {
     }, []);
 
     // Close mobile menu on route change
-    useEffect(() => { setMenuOpen(false); }, [location.pathname]);
+    useEffect(() => { setMenuOpen(false); setDropdownOpen(false); }, [location.pathname]);
+
+    // Close dropdown on outside click
+    useEffect(() => {
+        const handler = (e) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+                setDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
 
     const handleLogout = () => {
         logout();
@@ -101,16 +115,33 @@ const Navbar = () => {
                 <div className="app-navbar__actions">
                     {isAuthenticated ? (
                         <>
-                            <div className="app-navbar__user-pill">
-                                <span className="app-navbar__avatar">{getUserInitial()}</span>
-                                <span className="app-navbar__username">
-                                    {user?.name || user?.email?.split('@')[0] || 'User'}
-                                </span>
+                            <div className="app-navbar__user-dropdown" ref={dropdownRef}>
+                                <button
+                                    className="app-navbar__user-pill"
+                                    onClick={() => setDropdownOpen((v) => !v)}
+                                    aria-haspopup="true"
+                                    aria-expanded={dropdownOpen}
+                                >
+                                    <span className="app-navbar__avatar">{getUserInitial()}</span>
+                                    <span className="app-navbar__username">
+                                        {user?.name || user?.email?.split('@')[0] || 'User'}
+                                    </span>
+                                    <FiChevronDown size={13} style={{ opacity: 0.6, marginLeft: '2px', transition: 'transform 0.2s', transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                                </button>
+                                {dropdownOpen && (
+                                    <div className="app-navbar__dropdown-menu">
+                                        <Link className="app-navbar__dropdown-item" to="/profile">
+                                            <FiUser size={14} />
+                                            My Profile
+                                        </Link>
+                                        <div className="app-navbar__dropdown-divider" />
+                                        <button className="app-navbar__dropdown-item app-navbar__dropdown-item--logout" onClick={handleLogout}>
+                                            <FiLogOut size={14} />
+                                            Logout
+                                        </button>
+                                    </div>
+                                )}
                             </div>
-                            <button className="app-navbar__btn app-navbar__btn--logout" onClick={handleLogout}>
-                                <FiLogOut size={15} />
-                                Logout
-                            </button>
                         </>
                     ) : (
                         <>
@@ -141,6 +172,7 @@ const Navbar = () => {
                                 <Link className={`app-navbar__mobile-link${isActive('/dashboard') ? ' active' : ''}`} to="/dashboard"><FiBarChart2 size={16} /> Dashboard</Link>
                                 <Link className={`app-navbar__mobile-link${isActive('/interview') ? ' active' : ''}`} to="/interview"><FiVideo size={16} /> Mock Interview</Link>
                                 <Link className={`app-navbar__mobile-link${isActive('/resume-analyzer') ? ' active' : ''}`} to="/resume-analyzer"><FiFileText size={16} /> Resume Analyzer</Link>
+                                <Link className={`app-navbar__mobile-link${isActive('/profile') ? ' active' : ''}`} to="/profile"><FiUser size={16} /> My Profile</Link>
                             </>
                         )}
                         {user?.role === 'admin' && (
@@ -223,6 +255,14 @@ const App = () => {
                         element={
                             <ProtectedRoute>
                                 <InterviewReportPage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/profile"
+                        element={
+                            <ProtectedRoute>
+                                <ProfilePage />
                             </ProtectedRoute>
                         }
                     />

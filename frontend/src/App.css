@@ -326,6 +326,11 @@
   flex-shrink: 0;
 }
 
+/* --- User dropdown wrapper --- */
+.app-navbar__user-dropdown {
+  position: relative;
+}
+
 /* User pill */
 .app-navbar__user-pill {
   display: flex;
@@ -335,7 +340,14 @@
   background: rgba(124, 58, 237, 0.12);
   border: 1px solid rgba(124, 58, 237, 0.25);
   border-radius: 30px;
-  cursor: default;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+  outline: none;
+}
+
+.app-navbar__user-pill:hover {
+  background: rgba(124, 58, 237, 0.22);
+  border-color: rgba(168, 85, 247, 0.5);
 }
 
 .app-navbar__avatar {
@@ -360,6 +372,76 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* --- Dropdown Menu (floating card) --- */
+.app-navbar__dropdown-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 180px;
+  background: rgba(15, 8, 32, 0.97);
+  border: 1px solid rgba(124, 58, 237, 0.35);
+  border-radius: 14px;
+  padding: 0.4rem;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(124, 58, 237, 0.1);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  z-index: 2000;
+  animation: dropdownFadeIn 0.18s ease;
+  transform-origin: top right;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.app-navbar__dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  border-radius: 9px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgba(241, 245, 249, 0.85);
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+  text-align: left;
+  line-height: 1.4;
+  box-sizing: border-box;
+}
+
+.app-navbar__dropdown-item:hover {
+  background: rgba(124, 58, 237, 0.18);
+  color: #e2e0ff;
+}
+
+.app-navbar__dropdown-item--logout {
+  color: rgba(252, 165, 165, 0.85);
+}
+
+.app-navbar__dropdown-item--logout:hover {
+  background: rgba(239, 68, 68, 0.12);
+  color: #fca5a5;
+}
+
+.app-navbar__dropdown-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.07);
+  margin: 0.3rem 0.4rem;
+  border: none;
 }
 
 /* Buttons */

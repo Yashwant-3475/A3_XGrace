@@ -76,6 +76,7 @@ const register = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        provider: user.provider,
       },
       token,
     });
@@ -119,6 +120,7 @@ const login = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        provider: user.provider,
       },
       token,
     });
@@ -221,6 +223,7 @@ const googleAuth = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        provider: user.provider,
         picture: picture || null,
       },
       token,
@@ -234,11 +237,75 @@ const googleAuth = async (req, res) => {
   }
 };
 
+// @route   PUT /api/auth/profile
+// @desc    Update the logged-in user's name and/or password
+// @access  Private (requires valid JWT via authMiddleware)
+const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id; // set by authMiddleware
+    const { name, currentPassword, newPassword } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    // --- Name update (allowed for everyone) ---
+    if (name !== undefined) {
+      if (!name.trim()) {
+        return res.status(400).json({ message: 'Name cannot be empty.' });
+      }
+      user.name = name.trim();
+    }
+
+    // --- Password update (only for local users) ---
+    if (newPassword !== undefined) {
+      if (user.provider === 'google') {
+        return res.status(400).json({
+          message: 'Google users cannot change their password here. Please manage your account via Google.',
+        });
+      }
+
+      if (!currentPassword) {
+        return res.status(400).json({ message: 'Current password is required to set a new password.' });
+      }
+
+      if (newPassword.length < 6) {
+        return res.status(400).json({ message: 'New password must be at least 6 characters.' });
+      }
+
+      const isMatch = await bcrypt.compare(currentPassword, user.password);
+      if (!isMatch) {
+        return res.status(400).json({ message: 'Current password is incorrect.' });
+      }
+
+      user.password = await bcrypt.hash(newPassword, 10);
+    }
+
+    await user.save();
+
+    return res.status(200).json({
+      message: 'Profile updated successfully.',
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        provider: user.provider,
+      },
+    });
+  } catch (error) {
+    console.error('Update profile error:', error.message);
+    return res.status(500).json({ message: 'Server error while updating profile.' });
+  }
+};
+
 module.exports = {
   register,
   login,
   validateToken,
   googleAuth,
+  updateProfile,
 };
 
 

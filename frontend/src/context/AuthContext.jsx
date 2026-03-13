@@ -69,7 +69,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // Login: called after a successful POST /api/auth/login response
-  // Accepts both the JWT token and the user object { id, name, email, role }
+  // Accepts both the JWT token and the user object { id, name, email, role, provider }
   const login = (newToken, newUser) => {
     localStorage.setItem('authToken', newToken);
     if (newUser) {
@@ -87,6 +87,16 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  // updateUser: merge updated fields into the current user (used by ProfilePage)
+  // This instantly reflects changes (e.g. new name) in the Navbar without re-login.
+  const updateUser = (updatedFields) => {
+    setUser((prev) => {
+      const merged = { ...prev, ...updatedFields };
+      localStorage.setItem('user', JSON.stringify(merged));
+      return merged;
+    });
+  };
+
   // Only true after backend has confirmed the token
   const isAuthenticated = !!token;
 
@@ -96,6 +106,7 @@ export const AuthProvider = ({ children }) => {
     user,
     login,
     logout,
+    updateUser,
     isLoading,
   };
 
@@ -106,4 +117,4 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-export default AuthContext;
+export default AuthContext;
