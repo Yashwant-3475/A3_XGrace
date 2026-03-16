@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { FiChevronLeft, FiChevronRight, FiFilter, FiCalendar, FiTrendingUp, FiTarget } from 'react-icons/fi';
+import { HistorySkeleton } from '../components/Skeleton';
 
 const HistoryPage = () => {
     const navigate = useNavigate();
@@ -120,14 +121,7 @@ const HistoryPage = () => {
     };
 
     if (loading && currentPage === 1) {
-        return (
-            <div className="text-center py-5">
-                <div className="spinner-border text-primary" role="status" style={{ width: '3rem', height: '3rem' }}>
-                    <span className="visually-hidden">Loading...</span>
-                </div>
-                <p className="mt-3 text-muted">Loading interview history...</p>
-            </div>
-        );
+        return <HistorySkeleton />;
     }
 
     if (error) {

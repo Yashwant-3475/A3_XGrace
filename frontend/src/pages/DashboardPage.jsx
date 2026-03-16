@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { DashboardSkeleton } from '../components/Skeleton';
 import {
   ResponsiveContainer,
   LineChart,
@@ -82,14 +83,7 @@ const DashboardPage = () => {
   }, []);
 
   if (loading) {
-    return (
-      <div className="text-center py-5">
-        <div className="spinner-border text-primary" role="status" style={{ width: '3rem', height: '3rem' }}>
-          <span className="visually-hidden">Loading...</span>
-        </div>
-        <p className="mt-3 text-muted">Loading performance data...</p>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (error) {

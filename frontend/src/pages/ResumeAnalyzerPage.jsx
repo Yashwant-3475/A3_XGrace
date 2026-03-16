@@ -7,6 +7,7 @@ import {
   FiClock, FiDownload, FiChevronDown
 } from 'react-icons/fi';
 import './ResumeHistory.css';
+import { ResumeHistorySkeleton } from '../components/Skeleton';
 
 /* ---- constants ---- */
 const ALLOWED_MIME  = 'application/pdf';
@@ -247,6 +248,7 @@ const ResumeAnalyzerPage = () => {
   const [analysis, setAnalysis] = useState(null);
   const [dragOver, setDragOver] = useState(false);
   const [history, setHistory]   = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(true);
 
   const fileInputRef = useRef(null);
 
@@ -259,6 +261,8 @@ const ResumeAnalyzerPage = () => {
       } catch (err) {
         // silently ignore — user may not be logged in or history is empty
         console.warn('Could not load resume history:', err.message);
+      } finally {
+        setHistoryLoading(false);
       }
     };
     fetchHistory();
@@ -538,7 +542,10 @@ const ResumeAnalyzerPage = () => {
         )}
 
         {/* ---- Resume History Panel ---- */}
-        <HistoryPanel history={history} />
+        {historyLoading
+          ? <ResumeHistorySkeleton />
+          : <HistoryPanel history={history} />
+        }
 
       </div>
     </div>

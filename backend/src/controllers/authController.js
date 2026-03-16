@@ -104,6 +104,13 @@ const login = async (req, res) => {
       return res.status(400).json({ message: 'Invalid email or password.' });
     }
 
+    // Guard: user may have registered via Google and has no password
+    if (!user.password) {
+      return res.status(400).json({
+        message: 'This account was created with Google. Please use "Sign in with Google" instead.',
+      });
+    }
+
     // Compare the provided password with the stored hashed password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
