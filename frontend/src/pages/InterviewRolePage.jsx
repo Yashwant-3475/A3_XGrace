@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
-import { FiCode, FiServer, FiLayers, FiUsers, FiBriefcase, FiArrowRight, FiCheckCircle } from 'react-icons/fi';
+import { FiCode, FiServer, FiLayers, FiUsers, FiBriefcase, FiArrowRight, FiCheckCircle, FiCpu, FiList } from 'react-icons/fi';
 
 const InterviewRolePage = () => {
     const navigate = useNavigate();
+    const [mode, setMode] = useState(''); // 'mcq' | 'text'
     const [selectedRole, setSelectedRole] = useState('');
     const [difficulty, setDifficulty] = useState('');
     const [loading, setLoading] = useState(false);
@@ -55,6 +56,12 @@ const InterviewRolePage = () => {
     ];
 
     const handleStartInterview = async () => {
+        if (mode === 'text') {
+            // Text interview — navigate directly, no backend call needed yet
+            navigate('/interview/text', { state: { role: selectedRole } });
+            return;
+        }
+
         try {
             setLoading(true);
             setError('');
@@ -64,7 +71,7 @@ const InterviewRolePage = () => {
                 difficulty: difficulty
             });
 
-            // Navigate to interview page with session data
+            // Navigate to MCQ interview page with session data
             navigate('/interview/start', {
                 state: {
                     sessionId: response.data.sessionId,
@@ -93,11 +100,68 @@ const InterviewRolePage = () => {
                 <div className="col-lg-10">
                     {/* Header */}
                     <div className="text-center mb-5">
-                        <h1 className="fw-bold gradient-text mb-3">Select Interview Role</h1>
+                        <h1 className="fw-bold gradient-text mb-3">Start Interview</h1>
                         <p className="text-muted fs-5">
-                            Choose a role and difficulty to start your interview session
+                            Choose your interview mode to begin
                         </p>
                     </div>
+
+                    {/* Step 0: Mode Selection */}
+                    {!mode && (
+                        <div className="row g-4 mb-2">
+                            <div className="col-md-6">
+                                <div
+                                    className="card h-100 border-0 shadow-sm hover-lift"
+                                    style={{ cursor: 'pointer', transition: 'all 0.3s ease', border: '2px solid transparent' }}
+                                    onClick={() => setMode('mcq')}
+                                >
+                                    <div className="card-body p-4 text-center">
+                                        <div className="mb-3" style={{ color: '#3b82f6' }}>
+                                            <FiList size={48} />
+                                        </div>
+                                        <h4 className="fw-bold mb-2">MCQ Interview</h4>
+                                        <p className="text-muted small mb-3">Multiple choice questions — pick the correct answer</p>
+                                        <span className="badge" style={{ background: 'rgba(59,130,246,0.15)', color: '#3b82f6', padding: '6px 14px', borderRadius: '20px' }}>Classic Mode</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="col-md-6">
+                                <div
+                                    className="card h-100 border-0 shadow-sm hover-lift"
+                                    style={{ cursor: 'pointer', transition: 'all 0.3s ease' }}
+                                    onClick={() => setMode('text')}
+                                >
+                                    <div className="card-body p-4 text-center">
+                                        <div className="mb-3" style={{ color: '#8b5cf6' }}>
+                                            <FiCpu size={48} />
+                                        </div>
+                                        <h4 className="fw-bold mb-2">AI Text Interview</h4>
+                                        <p className="text-muted small mb-3">Type your answers — Groq AI evaluates and gives feedback</p>
+                                        <span className="badge" style={{ background: 'rgba(139,92,246,0.15)', color: '#8b5cf6', padding: '6px 14px', borderRadius: '20px' }}>✨ AI Powered</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Back to mode selection */}
+                    {mode && (
+                        <div className="mb-4">
+                            <button className="btn btn-sm btn-outline-secondary" onClick={() => { setMode(''); setSelectedRole(''); setDifficulty(''); }}>
+                                ← Back to Mode Selection
+                            </button>
+                            <span className="ms-3 badge" style={{ background: mode === 'text' ? 'rgba(139,92,246,0.15)' : 'rgba(59,130,246,0.15)', color: mode === 'text' ? '#8b5cf6' : '#3b82f6', padding: '6px 14px', borderRadius: '20px' }}>
+                                {mode === 'text' ? '✨ AI Text Interview' : '📋 MCQ Interview'}
+                            </span>
+                        </div>
+                    )}
+
+                    {/* Role selection title (only when mode is chosen) */}
+                    {mode && !selectedRole && (
+                        <div className="text-center mb-4">
+                            <h5 className="text-muted">Now select a role</h5>
+                        </div>
+                    )}
 
                     {/* Error Alert */}
                     {error && (
@@ -111,8 +175,8 @@ const InterviewRolePage = () => {
                         </div>
                     )}
 
-                    {/* Step 1: Role Selection */}
-                    {!selectedRole && (
+                    {/* Step 1: Role Selection — shown only after mode is selected */}
+                    {mode && !selectedRole && (
                         <div className="row g-4">
                             {roles.map((role) => {
                                 const Icon = role.icon;
@@ -157,8 +221,8 @@ const InterviewRolePage = () => {
                         </div>
                     )}
 
-                    {/* Step 2: Difficulty Selection */}
-                    {selectedRole && (
+                    {/* Step 2: Difficulty Selection — only for MCQ mode */}
+                    {mode === 'mcq' && selectedRole && (
                         <div>
                             {/* Selected Role Display */}
                             <div className="card border-0 shadow-sm mb-4">
@@ -252,13 +316,35 @@ const InterviewRolePage = () => {
                                                 </>
                                             ) : (
                                                 <>
-                                                    Start Interview
+                                                    Start MCQ Interview
                                                     <FiArrowRight className="ms-2" />
                                                 </>
                                             )}
                                         </button>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Step 2 (Text mode): Just a start button after role is picked */}
+                    {mode === 'text' && selectedRole && (
+                        <div className="card border-0 shadow-sm">
+                            <div className="card-body p-4 text-center">
+                                <div className="mb-3" style={{ color: '#8b5cf6' }}>
+                                    <FiCpu size={40} />
+                                </div>
+                                <h5 className="fw-bold mb-2">Ready to start your AI Text Interview?</h5>
+                                <p className="text-muted small mb-4">
+                                    Role: <strong>{getSelectedRoleData()?.name}</strong> — You'll answer 5 open-ended questions and Groq AI will evaluate each answer.
+                                </p>
+                                <button
+                                    className="btn btn-lg px-5"
+                                    style={{ background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', color: '#fff', border: 'none', borderRadius: '12px' }}
+                                    onClick={handleStartInterview}
+                                >
+                                    Start AI Interview <FiArrowRight className="ms-2" />
+                                </button>
                             </div>
                         </div>
                     )}

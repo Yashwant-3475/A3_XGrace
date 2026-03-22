@@ -1,115 +1,163 @@
-const openai = require('../../config/aiClient');
 const Evaluation = require('../models/Evaluation');
 
-// Helper: build a clear system prompt so the AI knows what to do
-const buildSystemPrompt = () => {
-  return `
-You are an HR expert evaluating answers to common HR interview questions.
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_MODEL = 'llama-3.3-70b-versatile'; // Fast, free, generous limits on Groq
 
-You MUST respond in JSON only, with this exact shape:
+// Build the prompt sent to Groq
+const buildPrompt = (question, answerText) => {
+    const questionLine = question
+        ? `Interview Question: "${question}"\n\n`
+        : '';
+
+    return `You are an expert HR interview evaluator.
+
+${questionLine}Candidate's Answer: "${answerText}"
+
+Evaluate this answer and respond ONLY with valid JSON in this exact format (no markdown, no code blocks):
 {
-  "score": number between 0 and 10,
-  "feedback": string with clear, beginner-friendly feedback
+  "score": <number between 0 and 10>,
+  "feedback": "<detailed, constructive feedback>"
 }
 
-Scoring rules (keep it simple):
-- 0–3: Very weak answer (missing key points, unclear, off-topic)
-- 4–6: Average answer (covers some points but lacks depth or clarity)
-- 7–8: Good answer (covers main ideas with clear structure)
-- 9–10: Excellent answer (very clear, structured, and insightful)
+Scoring guide:
+- 0-3: Very weak (missing key points, unclear, or off-topic)
+- 4-6: Average (covers some points but lacks depth or structure)
+- 7-8: Good (clear, structured, covers main points)
+- 9-10: Excellent (insightful, well-structured, complete answer)`;
+};
 
-Do NOT include any extra keys. Do NOT include explanations outside of JSON.
-`;
+// Simple rule-based fallback when Groq is unavailable
+const fallbackEvaluate = (answerText) => {
+    const words = answerText.trim().split(/\s+/).filter(Boolean).length;
+
+    let score;
+    let feedback;
+
+    if (words < 15) {
+        score = 2;
+        feedback = 'Your answer is too brief. In an interview, aim to give detailed responses with examples. Try to write at least 3-4 sentences explaining your thoughts clearly.';
+    } else if (words < 40) {
+        score = 4;
+        feedback = 'Your answer covers the basics but needs more depth. Try to include specific examples, explain your reasoning, and structure your response clearly using the STAR method (Situation, Task, Action, Result).';
+    } else if (words < 80) {
+        score = 6;
+        feedback = 'Good effort! Your answer shows understanding. To score higher, add concrete examples from your experience and be more specific about the outcomes or results of your actions.';
+    } else {
+        score = 7;
+        feedback = 'Well-structured and detailed answer. You covered the key points effectively. To make it even better, ensure your examples are specific and quantifiable where possible.';
+    }
+
+    return { score, feedback, source: 'FALLBACK' };
 };
 
 // @route   POST /api/evaluations
-// @desc    Send an HR-style answer to OpenAI and store feedback + score in MongoDB
-// @access  Public (you can secure this later)
+// @desc    Send an answer to Groq AI and store feedback + score in MongoDB
+// @access  Private (requires JWT)
 const evaluateAnswer = async (req, res) => {
-  try {
-    const { answerText } = req.body;
-
-    // 1. Basic input check (no advanced validation)
-    if (!answerText || typeof answerText !== 'string') {
-      return res
-        .status(400)
-        .json({ message: 'answerText is required and should be a string.' });
-    }
-
-    if (!process.env.OPENAI_API_KEY) {
-      return res.status(500).json({
-        message:
-          'OPENAI_API_KEY is not configured on the server. Ask the admin to set it in the .env file.',
-      });
-    }
-
-    // 2. Call OpenAI API with a simple prompt
-    // We ask it to return a small JSON object so it is easy to parse.
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini', // or another model you prefer
-      messages: [
-        { role: 'system', content: buildSystemPrompt() },
-        {
-          role: 'user',
-          content: `Here is the candidate's HR answer:\n\n"""${answerText}"""`,
-        },
-      ],
-      // Asking for a JSON-style response makes parsing easier
-      response_format: { type: 'json_object' },
-      temperature: 0.3, // low temperature for more consistent scoring
-    });
-
-    const rawContent = completion.choices[0]?.message?.content || '{}';
-
-    // 3. Safely parse JSON from the AI response
-    let parsed;
     try {
-      parsed = JSON.parse(rawContent);
+        const { answerText, question } = req.body;
+
+        // Basic validation
+        if (!answerText || typeof answerText !== 'string' || !answerText.trim()) {
+            return res.status(400).json({ message: 'answerText is required and must be a non-empty string.' });
+        }
+
+        let aiScore, aiFeedback, analysisSource;
+
+        // ── Try Groq AI first ────────────────────────────────────────────────
+        if (process.env.GROQ_API_KEY) {
+            try {
+                const response = await fetch(GROQ_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+                    },
+                    body: JSON.stringify({
+                        model: GROQ_MODEL,
+                        messages: [
+                            {
+                                role: 'user',
+                                content: buildPrompt(question, answerText),
+                            },
+                        ],
+                        temperature: 0.3,
+                        max_tokens: 512,
+                    }),
+                });
+
+                if (!response.ok) {
+                    const errText = await response.text();
+                    console.warn(`⚠️ Groq API error ${response.status}: ${errText}`);
+                    throw new Error(`Groq returned ${response.status}`);
+                }
+
+                const result = await response.json();
+                const generatedText = result.choices?.[0]?.message?.content || '{}';
+
+                // Parse JSON from Groq's response
+                const jsonMatch = generatedText.match(/\{[\s\S]*\}/);
+                const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : generatedText);
+
+                aiScore = typeof parsed.score === 'number'
+                    ? Math.min(10, Math.max(0, parsed.score))
+                    : 0;
+                aiFeedback = typeof parsed.feedback === 'string'
+                    ? parsed.feedback
+                    : 'No detailed feedback generated.';
+                analysisSource = 'AI';
+                console.log('✅ Groq evaluation successful, score:', aiScore);
+
+            } catch (groqError) {
+                // Groq failed → use fallback
+                console.warn('⚠️ Groq failed, using fallback evaluation:', groqError.message);
+                const fallback = fallbackEvaluate(answerText);
+                aiScore = fallback.score;
+                aiFeedback = fallback.feedback + '\n\n(Note: AI evaluation is temporarily unavailable. This is a basic automated assessment.)';
+                analysisSource = 'FALLBACK';
+            }
+        } else {
+            // No API key → use fallback
+            console.warn('⚠️ GROQ_API_KEY not set, using fallback evaluation');
+            const fallback = fallbackEvaluate(answerText);
+            aiScore = fallback.score;
+            aiFeedback = fallback.feedback + '\n\n(Note: AI evaluation is not configured. This is a basic automated assessment.)';
+            analysisSource = 'FALLBACK';
+        }
+
+        // Save to MongoDB linked to the logged-in user
+        const evaluation = await Evaluation.create({
+            user: req.user.id,
+            answerText,
+            feedback: aiFeedback,
+            score: aiScore,
+        });
+
+        res.status(201).json({
+            ...evaluation.toObject(),
+            analysisSource,
+        });
+
     } catch (error) {
-      console.error('Failed to parse AI JSON response:', rawContent);
-      return res.status(500).json({ message: 'Invalid response from AI evaluation.' });
+        console.error('❌ Evaluation error:', error.message);
+        res.status(500).json({ message: 'Failed to evaluate answer. Please try again.' });
     }
-
-    // Ensure score and feedback exist; apply simple defaults if missing
-    const aiScore = typeof parsed.score === 'number' ? parsed.score : 0;
-    const aiFeedback =
-      typeof parsed.feedback === 'string'
-        ? parsed.feedback
-        : 'No detailed feedback was generated.';
-
-    // 4. Store evaluation result in MongoDB, linked to the authenticated user
-    const evaluation = await Evaluation.create({
-      user: req.user.id,
-      answerText,
-      feedback: aiFeedback,
-      score: aiScore,
-    });
-
-    // 5. Return the saved evaluation to the client
-    res.status(201).json(evaluation);
-  } catch (error) {
-    console.error('AI evaluation error:', error.message);
-    res.status(500).json({ message: 'Failed to evaluate answer.' });
-  }
 };
 
 // @route   GET /api/evaluations
-// @desc    Get the current user's stored AI evaluations only
+// @desc    Get the current user's stored AI evaluations
 // @access  Private (requires JWT)
 const getEvaluations = async (req, res) => {
-  try {
-    // Only return evaluations belonging to the authenticated user
-    const evaluations = await Evaluation.find({ user: req.user.id }).sort({ createdAt: -1 });
-    res.json(evaluations);
-  } catch (error) {
-    console.error('Get evaluations error:', error.message);
-    res.status(500).json({ message: 'Failed to fetch evaluations.' });
-  }
+    try {
+        const evaluations = await Evaluation.find({ user: req.user.id }).sort({ createdAt: -1 });
+        res.json(evaluations);
+    } catch (error) {
+        console.error('Get evaluations error:', error.message);
+        res.status(500).json({ message: 'Failed to fetch evaluations.' });
+    }
 };
 
 module.exports = {
-  evaluateAnswer,
-  getEvaluations,
+    evaluateAnswer,
+    getEvaluations,
 };
-
-

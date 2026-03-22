@@ -13,6 +13,7 @@ import InterviewRolePage from './pages/InterviewRolePage.jsx';
 import InterviewPage from './pages/InterviewPage.jsx';
 import InterviewResultPage from './pages/InterviewResultPage.jsx';
 import InterviewReportPage from './pages/InterviewReportPage.jsx';
+import TextInterviewPage from './pages/TextInterviewPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -256,6 +257,14 @@ const App = () => {
                         element={
                             <ProtectedRoute>
                                 <InterviewReportPage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/interview/text"
+                        element={
+                            <ProtectedRoute>
+                                <TextInterviewPage />
                             </ProtectedRoute>
                         }
                     />
