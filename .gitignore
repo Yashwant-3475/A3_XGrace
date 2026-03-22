@@ -1,0 +1,22 @@
+# Root-level safety net for secrets
+# Individual .gitignore files in /backend and /frontend also cover these
+
+# Environment variable files — NEVER commit these
+.env
+.env.local
+.env.*.local
+
+# Node dependencies
+node_modules/
+
+# Build output
+/build
+/dist
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
