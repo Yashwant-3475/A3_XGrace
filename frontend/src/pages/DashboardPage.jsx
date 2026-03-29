@@ -14,11 +14,12 @@ import {
   CartesianGrid,
   Legend,
 } from 'recharts';
-import { FiTrendingUp, FiTarget, FiCheckCircle, FiVideo, FiFileText, FiCalendar, FiAward, FiList } from 'react-icons/fi';
+import { FiTrendingUp, FiTarget, FiCheckCircle, FiVideo, FiFileText, FiCalendar, FiAward, FiList, FiCpu, FiStar } from 'react-icons/fi';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
   const [results, setResults] = useState([]);
+  const [aiResults, setAiResults] = useState([]);   // AI interview sessions
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [totalInterviewCount, setTotalInterviewCount] = useState(0);
@@ -80,6 +81,22 @@ const DashboardPage = () => {
       }
     };
     fetchTotalCount();
+
+    // Fetch recent AI text interview sessions for dashboard
+    const fetchAiResults = async () => {
+      try {
+        const token = localStorage.getItem('authToken');
+        if (!token) return;
+        const res = await axios.get(
+          `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/ai-interview/recent`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setAiResults(res.data || []);
+      } catch (err) {
+        console.error('Error fetching AI interview results:', err);
+      }
+    };
+    fetchAiResults();
   }, []);
 
   if (loading) {
@@ -148,6 +165,21 @@ const DashboardPage = () => {
     insightMessage = '📈 Good progress! Keep practicing to improve your accuracy above 70%.';
     insightType = 'info';
   }
+
+  // AI chart data (score over time, 0-10 scale → multiply by 10 for %)
+  const aiChartData = [...aiResults]
+    .reverse()
+    .map((r, index) => ({
+      name: `#${index + 1}`,
+      avgScore: r.averageScore,
+      percentage: r.percentage,
+    }));
+
+  const aiTotalSessions = aiResults.length;
+  const aiBestScore    = aiTotalSessions > 0 ? Math.max(...aiResults.map(r => r.averageScore)) : 0;
+  const aiAvgScore     = aiTotalSessions > 0
+    ? (aiResults.reduce((s, r) => s + r.averageScore, 0) / aiTotalSessions).toFixed(1)
+    : 0;
 
   const chartData = [...results]
     .reverse()
@@ -241,11 +273,12 @@ const DashboardPage = () => {
         </div>
       </div>
 
+      {/* ── MCQ charts (existing) ── */}
       <div className="card mb-4">
         <div className="card-body">
           <h5 className="card-title mb-4 fw-bold d-flex align-items-center">
             <FiTrendingUp className="me-2" style={{ color: 'var(--primary-color)' }} />
-            Interview Score Trend
+            MCQ Interview — Score Trend
           </h5>
           <div style={{ width: '100%', height: 300 }}>
             <ResponsiveContainer>
@@ -276,11 +309,11 @@ const DashboardPage = () => {
         </div>
       </div>
 
-      <div className="card">
+      <div className="card mb-4">
         <div className="card-body">
           <h5 className="card-title mb-4 fw-bold d-flex align-items-center">
             <FiCheckCircle className="me-2" style={{ color: '#10b981' }} />
-            Accuracy Trend
+            MCQ Interview — Accuracy Trend
           </h5>
           <div style={{ width: '100%', height: 300 }}>
             <ResponsiveContainer>
@@ -307,6 +340,138 @@ const DashboardPage = () => {
           </div>
         </div>
       </div>
+
+      {/* ════════════════════════════════════════════════════════════════
+           AI TEXT INTERVIEW SECTION
+      ════════════════════════════════════════════════════════════════ */}
+      <div className="d-flex justify-content-between align-items-center mt-5 mb-3">
+        <h4 className="fw-bold d-flex align-items-center mb-0" style={{ color: '#8b5cf6' }}>
+          <FiCpu className="me-2" size={22} /> AI Interview Performance
+        </h4>
+        <button
+          className="btn btn-sm btn-outline-secondary"
+          onClick={() => navigate('/ai-history')}
+        >
+          View Full AI History
+        </button>
+      </div>
+
+      {aiTotalSessions === 0 ? (
+        <div className="card mb-4">
+          <div className="card-body text-center py-5">
+            <FiCpu size={48} className="mb-3" style={{ color: '#8b5cf6', opacity: 0.4 }} />
+            <h5 className="text-muted">No AI interviews yet</h5>
+            <p className="text-muted small">Take an AI-powered text interview to see your performance data here.</p>
+            <button
+              className="btn btn-sm mt-1"
+              style={{ background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', color: '#fff', border: 'none', borderRadius: '10px' }}
+              onClick={() => navigate('/interview')}
+            >
+              <FiCpu size={13} className="me-2" /> Start AI Interview
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* AI Stat Cards */}
+          <div className="row mb-4">
+            <div className="col-md-4 col-sm-6 mb-3">
+              <div className="card stat-card" style={{ borderLeftColor: '#8b5cf6' }}>
+                <div className="d-flex align-items-center justify-content-between">
+                  <div>
+                    <h6 className="text-muted mb-1 fw-semibold">AI Sessions</h6>
+                    <h2 className="mb-0 fw-bold" style={{ color: '#8b5cf6' }}>{aiTotalSessions}</h2>
+                  </div>
+                  <FiCpu size={36} style={{ color: '#8b5cf6', opacity: 0.6 }} />
+                </div>
+              </div>
+            </div>
+            <div className="col-md-4 col-sm-6 mb-3">
+              <div className="card stat-card" style={{ borderLeftColor: '#8b5cf6' }}>
+                <div className="d-flex align-items-center justify-content-between">
+                  <div>
+                    <h6 className="text-muted mb-1 fw-semibold">Avg AI Score</h6>
+                    <h2 className="mb-0 fw-bold" style={{ color: '#8b5cf6' }}>{aiAvgScore} / 10</h2>
+                  </div>
+                  <FiStar size={36} style={{ color: '#8b5cf6', opacity: 0.6 }} />
+                </div>
+              </div>
+            </div>
+            <div className="col-md-4 col-sm-6 mb-3">
+              <div className="card stat-card" style={{ borderLeftColor: '#8b5cf6' }}>
+                <div className="d-flex align-items-center justify-content-between">
+                  <div>
+                    <h6 className="text-muted mb-1 fw-semibold">Best AI Score</h6>
+                    <h2 className="mb-0 fw-bold" style={{ color: '#8b5cf6' }}>{aiBestScore} / 10</h2>
+                  </div>
+                  <FiAward size={36} style={{ color: '#8b5cf6', opacity: 0.6 }} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* AI Score Trend Line Chart */}
+          <div className="card mb-4">
+            <div className="card-body">
+              <h5 className="card-title mb-4 fw-bold d-flex align-items-center">
+                <FiCpu className="me-2" style={{ color: '#8b5cf6' }} />
+                AI Interview — Average Score Trend
+              </h5>
+              <div style={{ width: '100%', height: 300 }}>
+                <ResponsiveContainer>
+                  <LineChart data={aiChartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="name" stroke="#6b7280" />
+                    <YAxis stroke="#6b7280" domain={[0, 10]} />
+                    <Tooltip
+                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
+                    />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="avgScore"
+                      stroke="#8b5cf6"
+                      strokeWidth={3}
+                      name="Avg Score (/10)"
+                      dot={{ fill: '#8b5cf6', r: 5 }}
+                      activeDot={{ r: 7 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+
+          {/* AI Score % Bar Chart */}
+          <div className="card mb-4">
+            <div className="card-body">
+              <h5 className="card-title mb-4 fw-bold d-flex align-items-center">
+                <FiTarget className="me-2" style={{ color: '#8b5cf6' }} />
+                AI Interview — Score Percentage Trend
+              </h5>
+              <div style={{ width: '100%', height: 300 }}>
+                <ResponsiveContainer>
+                  <BarChart data={aiChartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="name" stroke="#6b7280" />
+                    <YAxis stroke="#6b7280" domain={[0, 100]} />
+                    <Tooltip
+                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
+                    />
+                    <Legend />
+                    <Bar
+                      dataKey="percentage"
+                      fill="#8b5cf6"
+                      name="Score (%)"
+                      radius={[8, 8, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

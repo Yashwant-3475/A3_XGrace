@@ -14,12 +14,13 @@ import InterviewPage from './pages/InterviewPage.jsx';
 import InterviewResultPage from './pages/InterviewResultPage.jsx';
 import InterviewReportPage from './pages/InterviewReportPage.jsx';
 import TextInterviewPage from './pages/TextInterviewPage.jsx';
+import AiInterviewHistoryPage from './pages/AiInterviewHistoryPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import AdminPage from './pages/AdminPage.jsx';
-import { FiLogOut, FiLogIn, FiUserPlus, FiFileText, FiVideo, FiBarChart2, FiShield, FiMenu, FiX, FiCpu, FiUser, FiChevronDown } from 'react-icons/fi';
+import { FiLogOut, FiLogIn, FiUserPlus, FiFileText, FiVideo, FiBarChart2, FiShield, FiMenu, FiX, FiCpu, FiUser, FiChevronDown, FiClock } from 'react-icons/fi';
 import './App.css';
 
 const Navbar = () => {
@@ -94,6 +95,10 @@ const Navbar = () => {
                                     <Link className={`app-navbar__link${isActive('/resume-analyzer') ? ' app-navbar__link--active' : ''}`} to="/resume-analyzer">
                                         <FiFileText size={16} />
                                         Resume Analyzer
+                                    </Link>
+                                    <Link className={`app-navbar__link${isActive('/ai-history') ? ' app-navbar__link--active' : ''}`} to="/ai-history">
+                                        <FiClock size={16} />
+                                        AI History
                                     </Link>
                                 </>
                             )}
@@ -174,6 +179,7 @@ const Navbar = () => {
                                 <Link className={`app-navbar__mobile-link${isActive('/dashboard') ? ' active' : ''}`} to="/dashboard"><FiBarChart2 size={16} /> Dashboard</Link>
                                 <Link className={`app-navbar__mobile-link${isActive('/interview') ? ' active' : ''}`} to="/interview"><FiVideo size={16} /> Mock Interview</Link>
                                 <Link className={`app-navbar__mobile-link${isActive('/resume-analyzer') ? ' active' : ''}`} to="/resume-analyzer"><FiFileText size={16} /> Resume Analyzer</Link>
+                                <Link className={`app-navbar__mobile-link${isActive('/ai-history') ? ' active' : ''}`} to="/ai-history"><FiClock size={16} /> AI History</Link>
                                 <Link className={`app-navbar__mobile-link${isActive('/profile') ? ' active' : ''}`} to="/profile"><FiUser size={16} /> My Profile</Link>
                             </>
                         )}
@@ -257,6 +263,14 @@ const App = () => {
                         element={
                             <ProtectedRoute>
                                 <InterviewReportPage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/ai-history"
+                        element={
+                            <ProtectedRoute>
+                                <AiInterviewHistoryPage />
                             </ProtectedRoute>
                         }
                     />

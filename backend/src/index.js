@@ -8,6 +8,7 @@ const questionRoutes = require('./routes/questionRoutes');
 const evaluationRoutes = require('./routes/evaluationRoutes');
 const resumeRoutes = require('./routes/resumeRoutes');
 const interviewRoutes = require('./routes/interviewRoutes');
+const aiInterviewRoutes = require('./routes/aiInterviewRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const app = express();
 
@@ -56,6 +57,12 @@ app.use('/api/evaluations', evaluationRoutes);
 app.use('/api/resume', resumeRoutes);
 
 app.use('/api/interview', interviewRoutes);
+
+// AI Text Interview session routes
+// POST /api/ai-interview/save-session
+// GET  /api/ai-interview/recent
+// GET  /api/ai-interview/history
+app.use('/api/ai-interview', aiInterviewRoutes);
 
 // Admin-only routes (protected by authMiddleware + isAdmin)
 // GET /api/admin/stats    -> platform stats

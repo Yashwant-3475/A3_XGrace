@@ -71,6 +71,8 @@ const TextInterviewPage = () => {
     const [finished, setFinished] = useState(false);
     const [wordCount, setWordCount] = useState(0);
     const [lastSource, setLastSource] = useState(null); // 'AI' | 'FALLBACK' | null
+    const [sessionSaved, setSessionSaved] = useState(false); // true once saved to DB
+    const [sessionSaving, setSessionSaving] = useState(false);
 
     useEffect(() => {
         const words = answerText.trim().split(/\s+/).filter(Boolean).length;
@@ -111,6 +113,30 @@ const TextInterviewPage = () => {
 
             if (currentIdx + 1 >= totalQuestions) {
                 setFinished(true);
+                // ── Save entire session to DB ───────────────────────────────
+                setSessionSaving(true);
+                try {
+                    const token = localStorage.getItem('authToken');
+                    await api.post('/ai-interview/save-session', {
+                        role,
+                        answers: updatedResults.map(r => ({
+                            question: r.question,
+                            answerText: r.answerText,
+                            score: r.score,
+                            feedback: r.feedback,
+                            analysisSource: r.analysisSource,
+                        })),
+                    }, {
+                        headers: { Authorization: `Bearer ${token}` },
+                    });
+                    setSessionSaved(true);
+                } catch (saveErr) {
+                    console.warn('Could not save AI interview session to history:', saveErr.message);
+                    // Don't block the results screen — just log it
+                } finally {
+                    setSessionSaving(false);
+                }
+                // ────────────────────────────────────────────────────────────
             } else {
                 setCurrentIdx(prev => prev + 1);
                 setAnswerText('');
@@ -164,6 +190,12 @@ const TextInterviewPage = () => {
                                             </div>
                                             <div style={{ fontSize: '0.9rem', opacity: 0.7 }}>{totalQuestions} Questions Answered</div>
                                         </div>
+                                    </div>
+                                    {/* Session save status */}
+                                    <div className="text-center mt-3" style={{ fontSize: '0.8rem', opacity: 0.7 }}>
+                                        {sessionSaving && <span>⏳ Saving to history...</span>}
+                                        {sessionSaved && <span>✅ Saved to your AI Interview History</span>}
+                                        {!sessionSaving && !sessionSaved && <span>⚠️ Could not save to history (check connection)</span>}
                                     </div>
                                 </div>
                             </div>
@@ -224,6 +256,12 @@ const TextInterviewPage = () => {
                                 Back to Home
                             </button>
                             <button
+                                className="btn btn-outline-primary px-4"
+                                onClick={() => navigate('/ai-history')}
+                            >
+                                View AI History
+                            </button>
+                            <button
                                 className="btn px-4"
                                 style={{ background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', color: '#fff', border: 'none', borderRadius: '10px' }}
                                 onClick={() => {
@@ -233,6 +271,8 @@ const TextInterviewPage = () => {
                                     setFinished(false);
                                     setError('');
                                     setLastSource(null);
+                                    setSessionSaved(false);
+                                    setSessionSaving(false);
                                 }}
                             >
                                 <FiRotateCcw size={15} className="me-2" />
