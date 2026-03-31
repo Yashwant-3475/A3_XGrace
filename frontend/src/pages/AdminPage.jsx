@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -7,8 +7,13 @@ import { toast } from 'react-toastify';
 import {
     FiGrid, FiUsers, FiList, FiDatabase,
     FiActivity, FiMessageSquare, FiTrash2,
-    FiPlus, FiX,
+    FiPlus, FiX, FiCpu, FiChevronUp,
+    FiEye, FiDownload, FiSearch,
 } from 'react-icons/fi';
+import {
+    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+    PieChart, Pie, Cell, Legend, BarChart, Bar,
+} from 'recharts';
 import './Admin.css';
 
 const BACKEND_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -18,6 +23,7 @@ const NAV_ITEMS = [
     { key: 'dashboard', label: 'Dashboard', Icon: FiGrid },
     { key: 'users', label: 'Users', Icon: FiUsers },
     { key: 'questions', label: 'Question Bank', Icon: FiList },
+    { key: 'ai-interviews', label: 'AI Interviews', Icon: FiCpu },
 ];
 
 // ─── Confirmation Modal ─────────────────────────────────────────────────────
@@ -623,16 +629,448 @@ const QuestionsTab = ({ token }) => {
     );
 };
 
+// ─── AI Interviews Tab ──────────────────────────────────────────────────────
 
-// ─── Main AdminPage ─────────────────────────────────────────────────────────
+// Skill level badge helper
+const SkillBadge = ({ level }) => {
+    const MAP = {
+        Beginner:     { cls: 'skill-badge--beginner',     label: '🟡 Beginner' },
+        Intermediate: { cls: 'skill-badge--intermediate', label: '🔵 Intermediate' },
+        'Job Ready':  { cls: 'skill-badge--jobready',     label: '🟢 Job Ready' },
+    };
+    const b = MAP[level] || { cls: '', label: level };
+    return <span className={`skill-badge ${b.cls}`}>{b.label}</span>;
+};
+
+// Donut chart custom label
+const CHART_COLORS = ['#6F2DBD', '#A663CC', '#06b6d4', '#f97316', '#10b981'];
+
+// ── Analytics Sub-Tab ────────────────────────────────────────────────────────
+const AnalyticsSubTab = ({ token }) => {
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+
+    useEffect(() => {
+        axios
+            .get(`${BACKEND_URL}/api/admin/ai-stats`, { headers: { Authorization: `Bearer ${token}` } })
+            .then((r) => setData(r.data))
+            .catch(() => setError('Failed to load AI analytics.'))
+            .finally(() => setLoading(false));
+    }, [token]);
+
+    if (loading) return <div className="admin-loading"><div className="spinner-border spinner-border-sm" role="status" /> Loading analytics…</div>;
+    if (error)   return <div className="admin-error">{error}</div>;
+
+    const skillOrder = ['Beginner', 'Intermediate', 'Job Ready'];
+    const skillData = skillOrder.map((s) => {
+        const found = data.skillDistribution.find((x) => x.skillLevel === s);
+        return { name: s, count: found ? found.count : 0 };
+    });
+
+    return (
+        <>
+            {/* Stat Cards */}
+            <div className="admin-stat-grid ai-stat-grid">
+                <div className="admin-stat-card">
+                    <div className="admin-stat-icon purple"><FiCpu size={22} color="white" /></div>
+                    <div>
+                        <div className="admin-stat-value">{data.totalSessions}</div>
+                        <div className="admin-stat-label">Total AI Sessions</div>
+                    </div>
+                </div>
+                <div className="admin-stat-card">
+                    <div className="admin-stat-icon teal"><FiActivity size={22} color="white" /></div>
+                    <div>
+                        <div className="admin-stat-value">{data.platformAvgScore}<span style={{ fontSize: '1rem', color: '#6b7280' }}>/10</span></div>
+                        <div className="admin-stat-label">Platform Avg Score</div>
+                    </div>
+                </div>
+                <div className="admin-stat-card">
+                    <div className="admin-stat-icon orange"><FiList size={22} color="white" /></div>
+                    <div>
+                        <div className="admin-stat-value" style={{ textTransform: 'capitalize', fontSize: '1.4rem' }}>{data.mostPopularRole}</div>
+                        <div className="admin-stat-label">Most Popular Role</div>
+                    </div>
+                </div>
+                <div className="admin-stat-card">
+                    <div className="admin-stat-icon" style={{ background: 'linear-gradient(135deg,#10b981,#059669)' }}><FiUsers size={22} color="white" /></div>
+                    <div>
+                        <div className="admin-stat-value" style={{ fontSize: '1rem', lineHeight: 1.4 }}>{data.topPerformer ? data.topPerformer.name : '—'}</div>
+                        <div className="admin-stat-label">Top Performer{data.topPerformer ? ` · ${data.topPerformer.avgScore}/10` : ''}</div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Charts row */}
+            <div className="ai-charts-grid">
+                {/* Line Chart — daily activity */}
+                <div className="admin-table-card ai-chart-card">
+                    <div className="ai-chart-title">📈 Daily Sessions (Last 30 Days)</div>
+                    {data.dailyActivity.length === 0 ? (
+                        <div className="ai-chart-empty">No data yet</div>
+                    ) : (
+                        <ResponsiveContainer width="100%" height={220}>
+                            <LineChart data={data.dailyActivity} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                                <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#9ca3af' }} tickFormatter={(v) => v.slice(5)} />
+                                <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} allowDecimals={false} />
+                                <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12 }} />
+                                <Line type="monotone" dataKey="count" stroke="#6F2DBD" strokeWidth={2.5} dot={{ r: 3, fill: '#6F2DBD' }} activeDot={{ r: 5 }} />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    )}
+                </div>
+
+                {/* Donut — role distribution */}
+                <div className="admin-table-card ai-chart-card">
+                    <div className="ai-chart-title">🍕 Role Distribution</div>
+                    {data.roleDistribution.length === 0 ? (
+                        <div className="ai-chart-empty">No data yet</div>
+                    ) : (
+                        <ResponsiveContainer width="100%" height={220}>
+                            <PieChart>
+                                <Pie data={data.roleDistribution} dataKey="count" nameKey="role" cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={3}>
+                                    {data.roleDistribution.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                                </Pie>
+                                <Tooltip formatter={(val, name) => [val, name.charAt(0).toUpperCase() + name.slice(1)]} contentStyle={{ borderRadius: 8, fontSize: 12 }} />
+                                <Legend formatter={(v) => v.charAt(0).toUpperCase() + v.slice(1)} iconType="circle" iconSize={10} />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    )}
+                </div>
+
+                {/* Bar — skill level distribution */}
+                <div className="admin-table-card ai-chart-card">
+                    <div className="ai-chart-title">📊 Skill Level Distribution</div>
+                    {skillData.every((s) => s.count === 0) ? (
+                        <div className="ai-chart-empty">No data yet</div>
+                    ) : (
+                        <ResponsiveContainer width="100%" height={220}>
+                            <BarChart data={skillData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                                <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#9ca3af' }} />
+                                <YAxis tick={{ fontSize: 11, fill: '#9ca3af' }} allowDecimals={false} />
+                                <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12 }} />
+                                <Bar dataKey="count" radius={[6, 6, 0, 0]}>
+                                    {skillData.map((s, i) => {
+                                        const colorMap = { Beginner: '#f59e0b', Intermediate: '#06b6d4', 'Job Ready': '#10b981' };
+                                        return <Cell key={i} fill={colorMap[s.name] || '#6F2DBD'} />;
+                                    })}
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    )}
+                </div>
+            </div>
+        </>
+    );
+};
+
+// ── Sessions Log Sub-Tab ─────────────────────────────────────────────────────
+const SessionsLogSubTab = ({ token }) => {
+    const [sessions, setSessions] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
+
+    // Filters
+    const [search, setSearch] = useState('');
+    const [roleFilter, setRoleFilter] = useState('');
+    const [skillFilter, setSkillFilter] = useState('');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+
+    // Expanded row
+    const [expandedId, setExpandedId] = useState(null);
+
+    // Delete
+    const [pendingDelete, setPendingDelete] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const fetchSessions = useCallback(async (pageNum = 1) => {
+        setLoading(true);
+        setError('');
+        try {
+            const params = { page: pageNum, limit: 10 };
+            if (search)      params.search     = search;
+            if (roleFilter)  params.role       = roleFilter;
+            if (skillFilter) params.skillLevel = skillFilter;
+            if (startDate)   params.startDate  = startDate;
+            if (endDate)     params.endDate    = endDate;
+
+            const { data } = await axios.get(`${BACKEND_URL}/api/admin/ai-sessions`, {
+                params,
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            setSessions(data.sessions);
+            setTotalPages(data.totalPages);
+            setTotalItems(data.totalItems);
+            setPage(data.page);
+        } catch {
+            setError('Failed to load sessions.');
+        } finally {
+            setLoading(false);
+        }
+    }, [token, search, roleFilter, skillFilter, startDate, endDate]);
+
+    useEffect(() => { fetchSessions(1); }, [fetchSessions]);
+
+    const handleDelete = async () => {
+        if (!pendingDelete) return;
+        setIsDeleting(true);
+        try {
+            await axios.delete(`${BACKEND_URL}/api/admin/ai-sessions/${pendingDelete._id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            toast.success('Session deleted successfully.');
+            setPendingDelete(null);
+            fetchSessions(page);
+        } catch {
+            toast.error('Failed to delete session.');
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    // CSV export
+    const handleExportCSV = async () => {
+        try {
+            // Fetch ALL sessions (no limit) for export
+            const params = { page: 1, limit: 10000 };
+            if (search)      params.search     = search;
+            if (roleFilter)  params.role       = roleFilter;
+            if (skillFilter) params.skillLevel = skillFilter;
+            if (startDate)   params.startDate  = startDate;
+            if (endDate)     params.endDate    = endDate;
+
+            const { data } = await axios.get(`${BACKEND_URL}/api/admin/ai-sessions`, {
+                params,
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            const rows = data.sessions.map((s, i) => ({
+                '#': i + 1,
+                Name: s.user?.name || 'Unknown',
+                Email: s.user?.email || '—',
+                Role: s.role,
+                'Avg Score': s.averageScore,
+                'Percentage (%)': s.percentage,
+                'Skill Level': s.skillLevel,
+                Date: new Date(s.createdAt).toLocaleDateString(),
+            }));
+
+            const headers = Object.keys(rows[0] || {});
+            const csvLines = [
+                headers.join(','),
+                ...rows.map((r) => headers.map((h) => `"${String(r[h]).replace(/"/g, '""')}"`).join(',')),
+            ];
+            const blob = new Blob([csvLines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ai-sessions-${new Date().toISOString().slice(0, 10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            toast.success('CSV downloaded!');
+        } catch {
+            toast.error('Failed to export CSV.');
+        }
+    };
+
+    const toggleExpand = (id) => setExpandedId((prev) => (prev === id ? null : id));
+
+    return (
+        <>
+            {/* Delete confirm modal */}
+            {pendingDelete && (
+                <ConfirmModal
+                    user={{ name: `session by ${pendingDelete.user?.name || 'Unknown'}` }}
+                    onConfirm={handleDelete}
+                    onCancel={() => setPendingDelete(null)}
+                    isDeleting={isDeleting}
+                />
+            )}
+
+            <div className="admin-table-card">
+                {/* Header */}
+                <div className="admin-table-header">
+                    <h3><FiCpu className="me-2" size={16} />All AI Sessions</h3>
+                    <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
+                        <span className="admin-count-badge">{totalItems} sessions</span>
+                        <button className="btn-add-question" onClick={handleExportCSV}>
+                            <FiDownload size={14} style={{ marginRight: 4 }} />Export CSV
+                        </button>
+                    </div>
+                </div>
+
+                {/* Filter bar */}
+                <div className="ai-filter-bar">
+                    <div className="ai-filter-search">
+                        <FiSearch size={14} className="ai-filter-icon" />
+                        <input
+                            className="ai-filter-input"
+                            type="text"
+                            placeholder="Search by name or email…"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
+                    </div>
+                    <select className="ai-filter-select" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
+                        <option value="">All Roles</option>
+                        {['frontend', 'backend', 'mern', 'hr', 'aptitude'].map((r) => (
+                            <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>
+                        ))}
+                    </select>
+                    <select className="ai-filter-select" value={skillFilter} onChange={(e) => setSkillFilter(e.target.value)}>
+                        <option value="">All Skill Levels</option>
+                        {['Beginner', 'Intermediate', 'Job Ready'].map((s) => (
+                            <option key={s} value={s}>{s}</option>
+                        ))}
+                    </select>
+                    <input type="date" className="ai-filter-select" value={startDate} onChange={(e) => setStartDate(e.target.value)} title="Start date" />
+                    <input type="date" className="ai-filter-select" value={endDate} onChange={(e) => setEndDate(e.target.value)} title="End date" />
+                </div>
+
+                {loading ? (
+                    <div className="admin-loading"><div className="spinner-border spinner-border-sm" role="status" /> Loading sessions…</div>
+                ) : error ? (
+                    <div className="admin-error">{error}</div>
+                ) : (
+                    <>
+                        <div className="ai-sessions-table-wrapper">
+                            <table className="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>User</th>
+                                        <th>Role</th>
+                                        <th>Score</th>
+                                        <th>%</th>
+                                        <th>Skill Level</th>
+                                        <th>Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {sessions.length === 0 ? (
+                                        <tr><td colSpan="8" style={{ textAlign: 'center', padding: '2rem', color: '#9ca3af' }}>No sessions found.</td></tr>
+                                    ) : sessions.map((s, i) => (
+                                        <>
+                                            <tr key={s._id} className={expandedId === s._id ? 'ai-row-expanded' : ''}>
+                                                <td className="text-muted">{(page - 1) * 10 + i + 1}</td>
+                                                <td>
+                                                    <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>{s.user?.name || 'Unknown'}</div>
+                                                    <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{s.user?.email || '—'}</div>
+                                                </td>
+                                                <td style={{ textTransform: 'capitalize', fontWeight: 500 }}>{s.role}</td>
+                                                <td><strong>{s.averageScore}</strong><span style={{ color: '#9ca3af', fontSize:'0.8rem' }}> / 10</span></td>
+                                                <td>
+                                                    <span className={`pct-badge pct-${s.percentage >= 75 ? 'high' : s.percentage >= 50 ? 'mid' : 'low'}`}>
+                                                        {s.percentage}%
+                                                    </span>
+                                                </td>
+                                                <td><SkillBadge level={s.skillLevel} /></td>
+                                                <td style={{ fontSize: '0.82rem', color: '#6b7280' }}>{new Date(s.createdAt).toLocaleDateString()}</td>
+                                                <td>
+                                                    <div style={{ display: 'flex', gap: '0.4rem' }}>
+                                                        <button
+                                                            className="btn-view"
+                                                            onClick={() => toggleExpand(s._id)}
+                                                            title="View Q&A"
+                                                        >
+                                                            {expandedId === s._id ? <FiChevronUp size={14} /> : <FiEye size={14} />}
+                                                        </button>
+                                                        <button
+                                                            className="btn-delete"
+                                                            onClick={() => setPendingDelete(s)}
+                                                            title="Delete session"
+                                                        >
+                                                            <FiTrash2 size={14} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {expandedId === s._id && (
+                                                <tr key={`${s._id}-exp`} className="ai-expand-row">
+                                                    <td colSpan="8">
+                                                        <div className="ai-qa-expand">
+                                                            <div className="ai-qa-expand-title">📋 Questions &amp; Answers</div>
+                                                            {(s.answers || []).map((ans, qi) => (
+                                                                <div key={qi} className="ai-qa-card">
+                                                                    <div className="ai-qa-question"><span>Q{qi + 1}.</span> {ans.question}</div>
+                                                                    <div className="ai-qa-answer"><strong>Answer:</strong> {ans.answerText || <em style={{ color: '#9ca3af' }}>No answer provided</em>}</div>
+                                                                    <div className="ai-qa-meta">
+                                                                        <span className="ai-qa-score">Score: {ans.score}/10</span>
+                                                                        <span className="ai-qa-source">{ans.analysisSource === 'FALLBACK' ? '⚠ Fallback' : '🤖 AI'}</span>
+                                                                        <span className="ai-qa-feedback">{ans.feedback}</span>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Pagination */}
+                        {totalPages > 1 && (
+                            <div className="ai-pagination">
+                                <button className="ai-page-btn" disabled={page <= 1} onClick={() => fetchSessions(page - 1)}>← Prev</button>
+                                <span className="ai-page-info">Page {page} of {totalPages}</span>
+                                <button className="ai-page-btn" disabled={page >= totalPages} onClick={() => fetchSessions(page + 1)}>Next →</button>
+                            </div>
+                        )}
+                    </>
+                )}
+            </div>
+        </>
+    );
+};
+
+// ── Main AiInterviewsTab ──────────────────────────────────────────────────────
+const AI_SUB_TABS = [
+    { key: 'analytics', label: '📊 Analytics' },
+    { key: 'sessions',  label: '📋 Sessions Log' },
+];
+
+const AiInterviewsTab = ({ token }) => {
+    const [subTab, setSubTab] = useState('analytics');
+    return (
+        <>
+            <div className="ai-sub-tabs">
+                {AI_SUB_TABS.map(({ key, label }) => (
+                    <button
+                        key={key}
+                        className={`ai-sub-tab-btn ${subTab === key ? 'active' : ''}`}
+                        onClick={() => setSubTab(key)}
+                    >
+                        {label}
+                    </button>
+                ))}
+            </div>
+            {subTab === 'analytics' && <AnalyticsSubTab token={token} />}
+            {subTab === 'sessions'  && <SessionsLogSubTab token={token} />}
+        </>
+    );
+};
+
+
 const AdminPage = () => {
     const { token, user } = useAuth();
     const [activeTab, setActiveTab] = useState('dashboard');
 
     const TAB_META = {
-        dashboard: { title: 'Dashboard', subtitle: 'Platform-wide overview and statistics' },
-        users: { title: 'Users', subtitle: 'Manage all registered users on the platform' },
-        questions: { title: 'Question Bank', subtitle: 'Full question bank across all roles' },
+        dashboard:       { title: 'Dashboard',       subtitle: 'Platform-wide overview and statistics' },
+        users:           { title: 'Users',           subtitle: 'Manage all registered users on the platform' },
+        questions:       { title: 'Question Bank',   subtitle: 'Full question bank across all roles' },
+        'ai-interviews': { title: 'AI Interviews',   subtitle: 'Control room for all AI text interview sessions' },
     };
     const { title, subtitle } = TAB_META[activeTab];
 
@@ -664,9 +1102,10 @@ const AdminPage = () => {
                 <h1 className="admin-page-title">{title}</h1>
                 <p className="admin-page-subtitle">{subtitle}</p>
 
-                {activeTab === 'dashboard' && <DashboardTab token={token} />}
-                {activeTab === 'users' && <UsersTab token={token} currentUser={user} />}
-                {activeTab === 'questions' && <QuestionsTab token={token} />}
+                {activeTab === 'dashboard'       && <DashboardTab token={token} />}
+                {activeTab === 'users'           && <UsersTab token={token} currentUser={user} />}
+                {activeTab === 'questions'       && <QuestionsTab token={token} />}
+                {activeTab === 'ai-interviews'   && <AiInterviewsTab token={token} />}
             </main>
         </div>
     );

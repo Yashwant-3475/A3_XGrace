@@ -1,4 +1,5 @@
 const AiInterviewSession = require('../models/AiInterviewSession');
+const mongoose = require('mongoose');
 
 // Helper: compute skill level from average score (0-10 scale)
 const computeSkillLevel = (avgScore) => {
@@ -132,4 +133,162 @@ const getHistory = async (req, res) => {
     }
 };
 
-module.exports = { saveSession, getRecentSessions, getHistory };
+// ─── GET /api/admin/ai-stats ────────────────────────────────────────────────
+// Admin-only: platform-wide aggregate stats for AI interview analytics
+const getAdminStats = async (req, res) => {
+    try {
+        const [totalSessions, avgScoreResult, roleDistRaw, skillDistRaw, topPerformerRaw, dailyRaw] = await Promise.all([
+            // Total session count
+            AiInterviewSession.countDocuments(),
+
+            // Platform average score
+            AiInterviewSession.aggregate([
+                { $group: { _id: null, avg: { $avg: '$averageScore' } } },
+            ]),
+
+            // Sessions per role
+            AiInterviewSession.aggregate([
+                { $group: { _id: '$role', count: { $sum: 1 } } },
+                { $sort: { count: -1 } },
+            ]),
+
+            // Sessions per skill level
+            AiInterviewSession.aggregate([
+                { $group: { _id: '$skillLevel', count: { $sum: 1 } } },
+            ]),
+
+            // Top performer: user with highest average score (min 1 session)
+            AiInterviewSession.aggregate([
+                { $group: { _id: '$userId', avgScore: { $avg: '$averageScore' }, totalSessions: { $sum: 1 } } },
+                { $sort: { avgScore: -1 } },
+                { $limit: 1 },
+                { $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'user' } },
+                { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+                { $project: { avgScore: 1, totalSessions: 1, 'user.name': 1, 'user.email': 1 } },
+            ]),
+
+            // Daily sessions for last 30 days
+            AiInterviewSession.aggregate([
+                {
+                    $match: {
+                        createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
+                    },
+                },
+                {
+                    $group: {
+                        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+                        count: { $sum: 1 },
+                    },
+                },
+                { $sort: { _id: 1 } },
+            ]),
+        ]);
+
+        const platformAvgScore = avgScoreResult.length > 0 ? parseFloat(avgScoreResult[0].avg.toFixed(2)) : 0;
+        const mostPopularRole = roleDistRaw.length > 0 ? roleDistRaw[0]._id : '—';
+        const topPerformer = topPerformerRaw.length > 0
+            ? { name: topPerformerRaw[0].user?.name || 'Unknown', email: topPerformerRaw[0].user?.email || '', avgScore: parseFloat(topPerformerRaw[0].avgScore.toFixed(2)) }
+            : null;
+
+        res.json({
+            totalSessions,
+            platformAvgScore,
+            mostPopularRole,
+            topPerformer,
+            roleDistribution: roleDistRaw.map((r) => ({ role: r._id, count: r.count })),
+            skillDistribution: skillDistRaw.map((s) => ({ skillLevel: s._id, count: s.count })),
+            dailyActivity: dailyRaw.map((d) => ({ date: d._id, count: d.count })),
+        });
+    } catch (error) {
+        console.error('Error fetching admin AI stats:', error);
+        res.status(500).json({ message: 'Failed to fetch AI interview stats.' });
+    }
+};
+
+// ─── GET /api/admin/ai-sessions ─────────────────────────────────────────────
+// Admin-only: paginated + filterable list of ALL sessions (all users)
+const getAllSessions = async (req, res) => {
+    try {
+        const page  = parseInt(req.query.page)  || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip  = (page - 1) * limit;
+
+        const filter = {};
+        if (req.query.role)       filter.role       = req.query.role;
+        if (req.query.skillLevel) filter.skillLevel = req.query.skillLevel;
+        if (req.query.startDate || req.query.endDate) {
+            filter.createdAt = {};
+            if (req.query.startDate) filter.createdAt.$gte = new Date(req.query.startDate);
+            if (req.query.endDate) {
+                const end = new Date(req.query.endDate);
+                end.setHours(23, 59, 59, 999);
+                filter.createdAt.$lte = end;
+            }
+        }
+
+        // User-name/email search via $lookup
+        let pipeline = [
+            { $match: filter },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'userId',
+                    foreignField: '_id',
+                    as: 'user',
+                },
+            },
+            { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+        ];
+
+        if (req.query.search) {
+            const regex = new RegExp(req.query.search, 'i');
+            pipeline.push({
+                $match: {
+                    $or: [{ 'user.name': regex }, { 'user.email': regex }],
+                },
+            });
+        }
+
+        // Count before pagination
+        const countPipeline = [...pipeline, { $count: 'total' }];
+        const [countResult, sessions] = await Promise.all([
+            AiInterviewSession.aggregate(countPipeline),
+            AiInterviewSession.aggregate([
+                ...pipeline,
+                { $sort: { createdAt: -1 } },
+                { $skip: skip },
+                { $limit: limit },
+                {
+                    $project: {
+                        role: 1, averageScore: 1, percentage: 1, skillLevel: 1,
+                        totalQuestions: 1, createdAt: 1, answers: 1,
+                        'user.name': 1, 'user.email': 1, 'user._id': 1,
+                    },
+                },
+            ]),
+        ]);
+
+        const totalItems = countResult.length > 0 ? countResult[0].total : 0;
+        const totalPages = Math.ceil(totalItems / limit) || 0;
+
+        res.json({ page, totalPages, totalItems, sessions });
+    } catch (error) {
+        console.error('Error fetching all AI sessions:', error);
+        res.status(500).json({ message: 'Failed to fetch AI interview sessions.' });
+    }
+};
+
+// ─── DELETE /api/admin/ai-sessions/:id ──────────────────────────────────────
+// Admin-only: delete any session by ID
+const deleteSession = async (req, res) => {
+    try {
+        const session = await AiInterviewSession.findByIdAndDelete(req.params.id);
+        if (!session) return res.status(404).json({ message: 'Session not found.' });
+        res.json({ message: 'AI interview session deleted successfully.' });
+    } catch (error) {
+        console.error('Error deleting AI session:', error);
+        res.status(500).json({ message: 'Failed to delete AI interview session.' });
+    }
+};
+
+module.exports = { saveSession, getRecentSessions, getHistory, getAdminStats, getAllSessions, deleteSession };

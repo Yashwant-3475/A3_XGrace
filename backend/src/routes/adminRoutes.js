@@ -5,6 +5,7 @@ const isAdmin = require('../middleware/isAdmin');
 const User = require('../models/User');
 const Question = require('../models/Question');
 const InterviewSession = require('../models/InterviewSession');
+const { getAdminStats, getAllSessions, deleteSession } = require('../controllers/aiInterviewController');
 
 // Apply authMiddleware + isAdmin to every route in this file
 router.use(authMiddleware, isAdmin);
@@ -123,6 +124,19 @@ router.post('/questions', async (req, res) => {
     }
 });
 
+// @route   GET /api/admin/ai-stats
+// @desc    Platform-wide AI interview analytics (counts, charts data, top performer)
+// @access  Admin only
+router.get('/ai-stats', getAdminStats);
+
+// @route   GET /api/admin/ai-sessions
+// @desc    Paginated + filterable list of ALL AI interview sessions (all users)
+// @access  Admin only
+router.get('/ai-sessions', getAllSessions);
+
+// @route   DELETE /api/admin/ai-sessions/:id
+// @desc    Delete an AI interview session by ID
+// @access  Admin only
+router.delete('/ai-sessions/:id', deleteSession);
+
 module.exports = router;
-
-

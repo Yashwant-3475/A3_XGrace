@@ -668,3 +668,367 @@
     border-radius: 4px;
     letter-spacing: 0.01em;
 }
+
+/* ============================================================
+   AI Interviews Tab — additional classes
+   ============================================================ */
+
+/* ── Sub-tab pill switcher ──────────────────────────────────── */
+.ai-sub-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.75rem;
+    background: #fff;
+    padding: 0.4rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(111, 45, 189, 0.08);
+    width: fit-content;
+    border: 1px solid rgba(111, 45, 189, 0.08);
+}
+
+.ai-sub-tab-btn {
+    padding: 0.5rem 1.25rem;
+    border-radius: 8px;
+    border: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: transparent;
+    color: #6b7280;
+    transition: all 0.2s ease;
+}
+
+.ai-sub-tab-btn:hover {
+    background: rgba(111, 45, 189, 0.07);
+    color: #6F2DBD;
+}
+
+.ai-sub-tab-btn.active {
+    background: linear-gradient(135deg, #6F2DBD, #A663CC);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(111, 45, 189, 0.3);
+}
+
+/* ── 4-card stat grid override for AI tab ─────────────────── */
+.ai-stat-grid {
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+/* ── Chart grid ─────────────────────────────────────────────── */
+.ai-charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.ai-chart-card {
+    min-height: 280px;
+}
+
+.ai-chart-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #374151;
+    margin-bottom: 1rem;
+}
+
+.ai-chart-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 180px;
+    color: #9ca3af;
+    font-size: 0.9rem;
+}
+
+/* ── Skill Level Badges ──────────────────────────────────── */
+.skill-badge {
+    display: inline-block;
+    padding: 0.22rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.skill-badge--beginner {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fcd34d;
+}
+
+.skill-badge--intermediate {
+    background: #e0f2fe;
+    color: #075985;
+    border: 1px solid #7dd3fc;
+}
+
+.skill-badge--jobready {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #6ee7b7;
+}
+
+/* ── Percentage Badge ────────────────────────────────────── */
+.pct-badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.pct-high {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.pct-mid {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.pct-low {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* ── View (expand) Button ────────────────────────────────── */
+.btn-view {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid #ddd6fe;
+    background: #f5f3ff;
+    color: #6F2DBD;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+}
+
+.btn-view:hover {
+    background: #6F2DBD;
+    border-color: #6F2DBD;
+    color: #fff;
+    transform: scale(1.08);
+    box-shadow: 0 2px 8px rgba(111, 45, 189, 0.3);
+}
+
+/* ── Filter bar ──────────────────────────────────────────── */
+.ai-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin-bottom: 1.25rem;
+    align-items: center;
+}
+
+.ai-filter-search {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+}
+
+.ai-filter-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    pointer-events: none;
+}
+
+.ai-filter-input {
+    width: 100%;
+    padding: 0.6rem 0.85rem 0.6rem 2rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 9px;
+    font-size: 0.88rem;
+    color: #374151;
+    background: #faf9ff;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
+}
+
+.ai-filter-input:focus {
+    border-color: #A663CC;
+    box-shadow: 0 0 0 3px rgba(166, 99, 204, 0.15);
+    background: #fff;
+}
+
+.ai-filter-select {
+    padding: 0.6rem 0.85rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 9px;
+    font-size: 0.87rem;
+    color: #374151;
+    background: #faf9ff;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ai-filter-select:focus {
+    border-color: #A663CC;
+    box-shadow: 0 0 0 3px rgba(166, 99, 204, 0.15);
+}
+
+/* ── Sessions table wrapper ──────────────────────────────── */
+.ai-sessions-table-wrapper {
+    overflow-x: auto;
+}
+
+/* ── Expanded row ────────────────────────────────────────── */
+.ai-row-expanded td {
+    background: #faf8ff !important;
+}
+
+.ai-expand-row td {
+    padding: 0 !important;
+    border-bottom: 2px solid #ede9fe;
+}
+
+.ai-qa-expand {
+    background: #faf8ff;
+    padding: 1.25rem 1.5rem;
+    animation: fadeIn 0.2s ease;
+}
+
+.ai-qa-expand-title {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #6F2DBD;
+    margin-bottom: 1rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.ai-qa-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.75rem;
+    border: 1px solid rgba(111, 45, 189, 0.1);
+    box-shadow: 0 1px 4px rgba(111, 45, 189, 0.06);
+}
+
+.ai-qa-card:last-child {
+    margin-bottom: 0;
+}
+
+.ai-qa-question {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+}
+
+.ai-qa-question span {
+    color: #6F2DBD;
+    margin-right: 4px;
+}
+
+.ai-qa-answer {
+    font-size: 0.87rem;
+    color: #4b5563;
+    margin-bottom: 0.5rem;
+    line-height: 1.55;
+}
+
+.ai-qa-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    margin-top: 0.6rem;
+}
+
+.ai-qa-score {
+    background: linear-gradient(135deg, #6F2DBD22, #A663CC22);
+    color: #6F2DBD;
+    border: 1px solid #A663CC44;
+    padding: 0.15rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.ai-qa-source {
+    background: #f3f4f6;
+    color: #6b7280;
+    padding: 0.15rem 0.55rem;
+    border-radius: 6px;
+    font-size: 0.76rem;
+    font-weight: 600;
+}
+
+.ai-qa-feedback {
+    font-size: 0.82rem;
+    color: #6b7280;
+    font-style: italic;
+    flex: 1;
+    min-width: 100px;
+}
+
+/* ── Pagination ──────────────────────────────────────────── */
+.ai-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #f3f4f6;
+}
+
+.ai-page-btn {
+    padding: 0.45rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    color: #374151;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.ai-page-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #6F2DBD, #A663CC);
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 2px 8px rgba(111, 45, 189, 0.3);
+}
+
+.ai-page-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.ai-page-info {
+    font-size: 0.88rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+/* ── Responsive tweaks ───────────────────────────────────── */
+@media (max-width: 900px) {
+    .ai-charts-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ai-filter-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .ai-filter-search {
+        min-width: unset;
+    }
+}
