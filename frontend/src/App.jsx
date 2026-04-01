@@ -20,7 +20,7 @@ import NotFoundPage from './pages/NotFoundPage.jsx';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import AdminPage from './pages/AdminPage.jsx';
-import { FiLogOut, FiLogIn, FiUserPlus, FiFileText, FiVideo, FiBarChart2, FiShield, FiMenu, FiX, FiCpu, FiUser, FiChevronDown, FiClock } from 'react-icons/fi';
+import { FiLogOut, FiLogIn, FiUserPlus, FiFileText, FiVideo, FiBarChart2, FiShield, FiMenu, FiX, FiCpu, FiUser, FiChevronDown } from 'react-icons/fi';
 import './App.css';
 
 const Navbar = () => {
@@ -96,10 +96,7 @@ const Navbar = () => {
                                         <FiFileText size={16} />
                                         Resume Analyzer
                                     </Link>
-                                    <Link className={`app-navbar__link${isActive('/ai-history') ? ' app-navbar__link--active' : ''}`} to="/ai-history">
-                                        <FiClock size={16} />
-                                        AI History
-                                    </Link>
+
                                 </>
                             )}
                             {user?.role === 'admin' && (
@@ -179,7 +176,7 @@ const Navbar = () => {
                                 <Link className={`app-navbar__mobile-link${isActive('/dashboard') ? ' active' : ''}`} to="/dashboard"><FiBarChart2 size={16} /> Dashboard</Link>
                                 <Link className={`app-navbar__mobile-link${isActive('/interview') ? ' active' : ''}`} to="/interview"><FiVideo size={16} /> Mock Interview</Link>
                                 <Link className={`app-navbar__mobile-link${isActive('/resume-analyzer') ? ' active' : ''}`} to="/resume-analyzer"><FiFileText size={16} /> Resume Analyzer</Link>
-                                <Link className={`app-navbar__mobile-link${isActive('/ai-history') ? ' active' : ''}`} to="/ai-history"><FiClock size={16} /> AI History</Link>
+
                                 <Link className={`app-navbar__mobile-link${isActive('/profile') ? ' active' : ''}`} to="/profile"><FiUser size={16} /> My Profile</Link>
                             </>
                         )}

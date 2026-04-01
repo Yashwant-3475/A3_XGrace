@@ -1,7 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import api from '../api';
-import { FiCpu, FiArrowRight, FiCheckCircle, FiRotateCcw, FiHome, FiStar, FiAlertCircle, FiZap } from 'react-icons/fi';
+import { FiCpu, FiArrowRight, FiCheckCircle, FiRotateCcw, FiHome, FiStar, FiAlertCircle, FiZap, FiVolume2, FiSquare } from 'react-icons/fi';
+
+// ── Web Speech API TTS Hook ────────────────────────────────────────────────
+const useSpeech = () => {
+    const [isSpeaking, setIsSpeaking] = useState(false);
+    const [speed, setSpeed] = useState(1);
+    const utteranceRef = useRef(null);
+
+    const speak = useCallback((text) => {
+        if (!window.speechSynthesis) return;
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.rate = speed;
+        utter.pitch = 1;
+        utter.lang = 'en-US';
+        utter.onstart = () => setIsSpeaking(true);
+        utter.onend = () => setIsSpeaking(false);
+        utter.onerror = () => setIsSpeaking(false);
+        utteranceRef.current = utter;
+        window.speechSynthesis.speak(utter);
+    }, [speed]);
+
+    const stop = useCallback(() => {
+        if (!window.speechSynthesis) return;
+        window.speechSynthesis.cancel();
+        setIsSpeaking(false);
+    }, []);
+
+    // Stop on unmount
+    useEffect(() => () => window.speechSynthesis?.cancel(), []);
+
+    return { isSpeaking, speak, stop, speed, setSpeed };
+};
+// ──────────────────────────────────────────────────────────────────────────
 
 // Role-specific open-ended questions
 const QUESTIONS_BY_ROLE = {
@@ -62,6 +95,7 @@ const TextInterviewPage = () => {
     const navigate = useNavigate();
     const role = location.state?.role || 'hr';
     const questions = QUESTIONS_BY_ROLE[role] || DEFAULT_QUESTIONS;
+    const { isSpeaking, speak, stop, speed, setSpeed } = useSpeech();
 
     const [currentIdx, setCurrentIdx] = useState(0);
     const [answerText, setAnswerText] = useState('');
@@ -78,6 +112,11 @@ const TextInterviewPage = () => {
         const words = answerText.trim().split(/\s+/).filter(Boolean).length;
         setWordCount(words);
     }, [answerText]);
+
+    // Auto-read question when it changes
+    useEffect(() => {
+        speak(questions[currentIdx]);
+    }, [currentIdx]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const totalQuestions = questions.length;
     const progress = ((currentIdx) / totalQuestions) * 100;
@@ -335,14 +374,87 @@ const TextInterviewPage = () => {
                     {/* Question Card */}
                     <div className="card border-0 shadow-sm mb-4">
                         <div className="card-body p-4">
-                            <div className="d-flex align-items-center mb-3">
-                                <span className="badge me-2" style={{ background: 'rgba(139,92,246,0.15)', color: '#8b5cf6', fontSize: '0.85rem' }}>
-                                    Question {currentIdx + 1}
-                                </span>
-                            </div>
-                            <h5 className="fw-semibold" style={{ lineHeight: '1.6' }}>
+                            {/* Question label */}
+                            <span className="badge mb-3" style={{ background: 'rgba(139,92,246,0.15)', color: '#8b5cf6', fontSize: '0.82rem', padding: '5px 12px', borderRadius: '20px' }}>
+                                Question {currentIdx + 1}
+                            </span>
+
+                            {/* Question text */}
+                            <h5 className="fw-semibold mb-4" style={{ lineHeight: '1.7' }}>
                                 {questions[currentIdx]}
                             </h5>
+
+                            {/* TTS Toolbar */}
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                padding: '8px 12px',
+                                background: 'rgba(139,92,246,0.06)',
+                                borderRadius: '12px',
+                                border: '1px solid rgba(139,92,246,0.15)',
+                                flexWrap: 'wrap',
+                            }}>
+                                <FiVolume2 size={14} style={{ color: '#8b5cf6', flexShrink: 0 }} />
+                                <span style={{ fontSize: '0.75rem', color: '#8b5cf6', fontWeight: 600, marginRight: '4px' }}>Voice</span>
+
+                                {/* Speed selector */}
+                                <select
+                                    value={speed}
+                                    onChange={e => setSpeed(parseFloat(e.target.value))}
+                                    style={{
+                                        fontSize: '0.75rem',
+                                        border: '1px solid rgba(139,92,246,0.3)',
+                                        borderRadius: '8px',
+                                        padding: '3px 8px',
+                                        color: '#6d28d9',
+                                        background: '#fff',
+                                        cursor: 'pointer',
+                                        outline: 'none',
+                                    }}
+                                    title="Reading speed"
+                                >
+                                    <option value={0.75}>🐢 Slow</option>
+                                    <option value={1}>Normal</option>
+                                    <option value={1.5}>🐇 Fast</option>
+                                </select>
+
+                                {/* Read / Reading button */}
+                                <button
+                                    onClick={() => speak(questions[currentIdx])}
+                                    disabled={isSpeaking}
+                                    style={{
+                                        display: 'flex', alignItems: 'center', gap: '5px',
+                                        fontSize: '0.78rem', fontWeight: 600,
+                                        padding: '4px 12px', borderRadius: '8px',
+                                        border: 'none', cursor: isSpeaking ? 'default' : 'pointer',
+                                        background: isSpeaking ? 'rgba(139,92,246,0.25)' : 'rgba(139,92,246,0.85)',
+                                        color: '#fff',
+                                        transition: 'background 0.2s',
+                                    }}
+                                >
+                                    <FiVolume2 size={13} />
+                                    {isSpeaking ? 'Reading…' : 'Read Aloud'}
+                                </button>
+
+                                {/* Stop button — only visible while speaking */}
+                                {isSpeaking && (
+                                    <button
+                                        onClick={stop}
+                                        style={{
+                                            display: 'flex', alignItems: 'center', gap: '5px',
+                                            fontSize: '0.78rem', fontWeight: 600,
+                                            padding: '4px 12px', borderRadius: '8px',
+                                            border: 'none', cursor: 'pointer',
+                                            background: 'rgba(239,68,68,0.85)',
+                                            color: '#fff',
+                                            transition: 'background 0.2s',
+                                        }}
+                                    >
+                                        <FiSquare size={11} /> Stop
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
 

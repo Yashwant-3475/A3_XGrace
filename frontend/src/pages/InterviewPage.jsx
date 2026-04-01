@@ -1,7 +1,39 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../api';
-import { FiChevronLeft, FiChevronRight, FiCheckCircle } from 'react-icons/fi';
+import { FiChevronLeft, FiChevronRight, FiCheckCircle, FiVolume2, FiSquare } from 'react-icons/fi';
+
+// ── Web Speech API TTS Hook ────────────────────────────────────────────────
+const useSpeech = () => {
+    const [isSpeaking, setIsSpeaking] = useState(false);
+    const [speed, setSpeed] = useState(1);
+    const utteranceRef = useRef(null);
+
+    const speak = useCallback((text) => {
+        if (!window.speechSynthesis) return;
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.rate = speed;
+        utter.pitch = 1;
+        utter.lang = 'en-US';
+        utter.onstart = () => setIsSpeaking(true);
+        utter.onend = () => setIsSpeaking(false);
+        utter.onerror = () => setIsSpeaking(false);
+        utteranceRef.current = utter;
+        window.speechSynthesis.speak(utter);
+    }, [speed]);
+
+    const stop = useCallback(() => {
+        if (!window.speechSynthesis) return;
+        window.speechSynthesis.cancel();
+        setIsSpeaking(false);
+    }, []);
+
+    useEffect(() => () => window.speechSynthesis?.cancel(), []);
+
+    return { isSpeaking, speak, stop, speed, setSpeed };
+};
+// ──────────────────────────────────────────────────────────────────────────
 
 const InterviewPage = () => {
     const navigate = useNavigate();
@@ -13,6 +45,7 @@ const InterviewPage = () => {
 
     // Get session data from navigation state
     const { sessionId, questions, role, totalQuestions } = location.state || {};
+    const { isSpeaking, speak, stop, speed, setSpeed } = useSpeech();
 
     useEffect(() => {
         // Redirect if no session data
@@ -30,6 +63,13 @@ const InterviewPage = () => {
             })));
         }
     }, [questions]);
+
+    // Auto-read question when index changes
+    useEffect(() => {
+        if (questions && questions[currentQuestionIndex]) {
+            speak(questions[currentQuestionIndex].question);
+        }
+    }, [currentQuestionIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
     if (!sessionId || !questions) {
         return null; // Will redirect in useEffect
@@ -151,6 +191,79 @@ const InterviewPage = () => {
                                     <h4 className="mb-0 fw-semibold" style={{ lineHeight: '1.6' }}>
                                         {currentQuestion.question}
                                     </h4>
+                                </div>
+
+                                {/* TTS Toolbar */}
+                                <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    padding: '8px 12px',
+                                    background: 'rgba(var(--primary-rgb, 99,102,241),0.06)',
+                                    borderRadius: '12px',
+                                    border: '1px solid rgba(var(--primary-rgb, 99,102,241),0.18)',
+                                    flexWrap: 'wrap',
+                                    marginLeft: '52px',
+                                }}>
+                                    <FiVolume2 size={14} style={{ color: 'var(--primary-color)', flexShrink: 0 }} />
+                                    <span style={{ fontSize: '0.75rem', color: 'var(--primary-color)', fontWeight: 600, marginRight: '4px' }}>Voice</span>
+
+                                    {/* Speed selector */}
+                                    <select
+                                        value={speed}
+                                        onChange={e => setSpeed(parseFloat(e.target.value))}
+                                        style={{
+                                            fontSize: '0.75rem',
+                                            border: '1px solid rgba(99,102,241,0.3)',
+                                            borderRadius: '8px',
+                                            padding: '3px 8px',
+                                            color: 'var(--primary-color)',
+                                            background: '#fff',
+                                            cursor: 'pointer',
+                                            outline: 'none',
+                                        }}
+                                        title="Reading speed"
+                                    >
+                                        <option value={0.75}>🐢 Slow</option>
+                                        <option value={1}>Normal</option>
+                                        <option value={1.5}>🐇 Fast</option>
+                                    </select>
+
+                                    {/* Read Aloud button */}
+                                    <button
+                                        onClick={() => speak(currentQuestion.question)}
+                                        disabled={isSpeaking}
+                                        style={{
+                                            display: 'flex', alignItems: 'center', gap: '5px',
+                                            fontSize: '0.78rem', fontWeight: 600,
+                                            padding: '4px 12px', borderRadius: '8px',
+                                            border: 'none', cursor: isSpeaking ? 'default' : 'pointer',
+                                            background: isSpeaking ? 'rgba(99,102,241,0.25)' : 'var(--primary-color)',
+                                            color: '#fff',
+                                            transition: 'background 0.2s',
+                                        }}
+                                    >
+                                        <FiVolume2 size={13} />
+                                        {isSpeaking ? 'Reading…' : 'Read Aloud'}
+                                    </button>
+
+                                    {/* Stop button */}
+                                    {isSpeaking && (
+                                        <button
+                                            onClick={stop}
+                                            style={{
+                                                display: 'flex', alignItems: 'center', gap: '5px',
+                                                fontSize: '0.78rem', fontWeight: 600,
+                                                padding: '4px 12px', borderRadius: '8px',
+                                                border: 'none', cursor: 'pointer',
+                                                background: 'rgba(239,68,68,0.85)',
+                                                color: '#fff',
+                                                transition: 'background 0.2s',
+                                            }}
+                                        >
+                                            <FiSquare size={11} /> Stop
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 
