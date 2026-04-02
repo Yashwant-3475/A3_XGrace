@@ -1,77 +1,33 @@
-// Basic Express server setup (no business logic yet)
 require('dotenv').config();
 const express = require('express');
-const cors = require('cors');
-const connectDB = require('../config/db');
-const authRoutes = require('./routes/authRoutes');
-const questionRoutes = require('./routes/questionRoutes');
+const cors    = require('cors');
+const connectDB        = require('../config/db');
+const authRoutes       = require('./routes/authRoutes');
+const questionRoutes   = require('./routes/questionRoutes');
 const evaluationRoutes = require('./routes/evaluationRoutes');
-const resumeRoutes = require('./routes/resumeRoutes');
-const interviewRoutes = require('./routes/interviewRoutes');
+const resumeRoutes     = require('./routes/resumeRoutes');
+const interviewRoutes  = require('./routes/interviewRoutes');
 const aiInterviewRoutes = require('./routes/aiInterviewRoutes');
-const adminRoutes = require('./routes/adminRoutes');
+const adminRoutes      = require('./routes/adminRoutes');
+
 const app = express();
 
-// Connect to MongoDB, THEN seed questions after connection is ready
-connectDB().then(() => {
-  require('./seed/seedQuestions')();
-});
+// Connect to MongoDB then seed questions if the collection is empty
+connectDB().then(() => { require('./seed/seedQuestions')(); });
 
-// Enable CORS so the React frontend (usually on port 3000) can call the API
 app.use(cors());
-
-// Middleware to parse JSON request bodies
 app.use(express.json());
 
-// Simple base route to check if the server is running
-app.get('/', (req, res) => {
-  res.json({ message: 'Backend is running. Add your routes in src/routes.' });
-});
+app.get('/', (req, res) => res.json({ message: 'Backend is running.' }));
+app.get('/api/health', (req, res) => res.status(200).json({ status: 'ok' }));
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.status(200).json({
-    status: 'ok',
-    message: 'Backend is running'
-  });
-});
-
-// Auth routes (register and login)
-// Full paths will be:
-// POST /api/auth/register
-// POST /api/auth/login
-app.use('/api/auth', authRoutes);
-
-
-// Question routes for mock interview
-// GET /api/questions
-app.use('/api/questions', questionRoutes);
-
-// AI evaluation routes for HR-style answers
-// POST /api/evaluations  -> send answer text, get feedback + score, store in DB
-// GET  /api/evaluations  -> list past evaluations
-app.use('/api/evaluations', evaluationRoutes);
-
-// Resume skill analyzer routes
-// POST /api/resume/analyze  -> upload PDF, extract text, match skills
-app.use('/api/resume', resumeRoutes);
-
-app.use('/api/interview', interviewRoutes);
-
-// AI Text Interview session routes
-// POST /api/ai-interview/save-session
-// GET  /api/ai-interview/recent
-// GET  /api/ai-interview/history
+app.use('/api/auth',         authRoutes);
+app.use('/api/questions',    questionRoutes);
+app.use('/api/evaluations',  evaluationRoutes);
+app.use('/api/resume',       resumeRoutes);
+app.use('/api/interview',    interviewRoutes);
 app.use('/api/ai-interview', aiInterviewRoutes);
+app.use('/api/admin',        adminRoutes);
 
-// Admin-only routes (protected by authMiddleware + isAdmin)
-// GET /api/admin/stats    -> platform stats
-// GET /api/admin/users    -> all users
-// GET /api/admin/questions -> all questions
-app.use('/api/admin', adminRoutes);
-// Start server on a default port
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
-});
-
+app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));

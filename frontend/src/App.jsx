@@ -41,7 +41,7 @@ const Navbar = () => {
     // Close mobile menu on route change
     useEffect(() => { setMenuOpen(false); setDropdownOpen(false); }, [location.pathname]);
 
-    // Close dropdown on outside click
+    // Close dropdown when clicking outside
     useEffect(() => {
         const handler = (e) => {
             if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -68,7 +68,7 @@ const Navbar = () => {
     return (
         <nav className={`app-navbar${scrolled ? ' app-navbar--scrolled' : ''}`}>
             <div className="app-navbar__inner">
-                {/* Brand */}
+
                 <Link className="app-navbar__brand" to="/">
                     <span className="app-navbar__brand-icon">
                         <FiCpu size={22} />
@@ -78,7 +78,7 @@ const Navbar = () => {
                     </span>
                 </Link>
 
-                {/* Desktop Nav Links */}
+
                 <div className="app-navbar__links">
                     {isAuthenticated ? (
                         <>
@@ -115,7 +115,7 @@ const Navbar = () => {
                     )}
                 </div>
 
-                {/* Right side actions */}
+
                 <div className="app-navbar__actions">
                     {isAuthenticated ? (
                         <>
@@ -161,13 +161,13 @@ const Navbar = () => {
                     )}
                 </div>
 
-                {/* Mobile hamburger */}
+
                 <button className="app-navbar__hamburger" onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle menu">
                     {menuOpen ? <FiX size={22} /> : <FiMenu size={22} />}
                 </button>
             </div>
 
-            {/* Mobile dropdown */}
+
             <div className={`app-navbar__mobile${menuOpen ? ' app-navbar__mobile--open' : ''}`}>
                 {isAuthenticated ? (
                     <>

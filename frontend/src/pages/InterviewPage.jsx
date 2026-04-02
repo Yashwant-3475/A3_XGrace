@@ -1,499 +1,485 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../api';
-import { FiChevronLeft, FiChevronRight, FiCheckCircle, FiVolume2, FiSquare, FiClock, FiAlertTriangle } from 'react-icons/fi';
+import {
+    FiChevronLeft, FiChevronRight, FiCheckCircle,
+    FiVolume2, FiSquare, FiClock, FiAlertTriangle,
+} from 'react-icons/fi';
 
-// ── Timer Config ────────────────────────────────────────────────────────────
-const SESSION_DURATION = 5 * 60; // 5 minutes — change this value to adjust
-// ───────────────────────────────────────────────────────────────────────────
+/* ─── Config ───────────────────────────────────────────────────── */
+const SESSION_DURATION = 5 * 60; // 5 minutes
+const LETTERS = ['A', 'B', 'C', 'D', 'E'];
 
-// ── useTimer Hook ────────────────────────────────────────────────────────────
-const useTimer = (initialSeconds, onExpire) => {
-    const [timeLeft, setTimeLeft] = useState(initialSeconds);
-    const intervalRef = useRef(null);
+/* ─── useTimer ─────────────────────────────────────────────────── */
+function useTimer(initial, onExpire) {
+    const [timeLeft, setTimeLeft] = useState(initial);
+    const ref       = useRef(null);
     const startedAt = useRef(Date.now());
 
     useEffect(() => {
         startedAt.current = Date.now();
-        intervalRef.current = setInterval(() => {
+        ref.current = setInterval(() => {
             setTimeLeft(prev => {
-                if (prev <= 1) {
-                    clearInterval(intervalRef.current);
-                    onExpire();
-                    return 0;
-                }
+                if (prev <= 1) { clearInterval(ref.current); onExpire(); return 0; }
                 return prev - 1;
             });
         }, 1000);
-        return () => clearInterval(intervalRef.current);
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+        return () => clearInterval(ref.current);
+    }, []); // eslint-disable-line
 
-    const getElapsed = useCallback(
-        () => Math.floor((Date.now() - startedAt.current) / 1000),
-        []
-    );
-
+    const getElapsed = useCallback(() => Math.floor((Date.now() - startedAt.current) / 1000), []);
     return { timeLeft, getElapsed };
-};
-// ───────────────────────────────────────────────────────────────────────────
+}
 
-// ── TimerBadge ───────────────────────────────────────────────────────────────
-const TimerBadge = ({ timeLeft, totalSeconds }) => {
-    const pct = totalSeconds > 0 ? (timeLeft / totalSeconds) * 100 : 0;
-    const color = pct > 50 ? '#10b981' : pct > 20 ? '#f59e0b' : '#ef4444';
-    const bg    = pct > 50 ? 'rgba(16,185,129,0.1)' : pct > 20 ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.12)';
-    const mm = String(Math.floor(timeLeft / 60)).padStart(2, '0');
-    const ss = String(timeLeft % 60).padStart(2, '0');
-    const pulseStyle = pct < 20
-        ? { animation: 'timerPulse 1s ease-in-out infinite' }
-        : {};
-
-    return (
-        <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: '6px',
-            padding: '6px 16px', borderRadius: '20px',
-            background: bg, border: `1.5px solid ${color}`,
-            color, fontWeight: 700, fontSize: '1rem',
-            ...pulseStyle,
-        }}>
-            <FiClock size={15} />
-            {mm}:{ss}
-            <span style={{ fontSize: '0.72rem', fontWeight: 500, opacity: 0.8, marginLeft: '2px' }}>
-                remaining
-            </span>
-        </span>
-    );
-};
-// ───────────────────────────────────────────────────────────────────────────
-
-// ── TimerExpiredModal ────────────────────────────────────────────────────────
-const TimerExpiredModal = ({ onEndNow, onContinue }) => (
-    <div style={{
-        position: 'fixed', inset: 0, zIndex: 9999,
-        background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-    }}>
-        <div style={{
-            background: '#fff', borderRadius: '16px', padding: '32px 36px',
-            maxWidth: '380px', width: '92%', textAlign: 'center',
-            boxShadow: '0 20px 50px rgba(0,0,0,0.25)',
-        }}>
-            <div style={{ fontSize: '2.8rem', marginBottom: '12px' }}>⏰</div>
-            <p style={{ color: '#374151', fontWeight: 600, fontSize: '1rem', marginBottom: '24px', lineHeight: '1.6' }}>
-                Time is over — do you want to end the interview or continue?
-            </p>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-                <button
-                    onClick={onEndNow}
-                    style={{
-                        padding: '10px 24px', borderRadius: '12px', border: 'none',
-                        background: 'linear-gradient(135deg,#6366f1,#4f46e5)',
-                        color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: '0.9rem',
-                    }}
-                >
-                    End Interview
-                </button>
-                <button
-                    onClick={onContinue}
-                    style={{
-                        padding: '10px 24px', borderRadius: '12px',
-                        border: '1.5px solid #d1d5db',
-                        background: '#fff', color: '#374151',
-                        fontWeight: 600, cursor: 'pointer', fontSize: '0.9rem',
-                    }}
-                >
-                    Continue
-                </button>
-            </div>
-        </div>
-    </div>
-);
-// ───────────────────────────────────────────────────────────────────────────
-
-// ── Web Speech API TTS Hook ─────────────────────────────────────────────────
-const useSpeech = () => {
+/* ─── useSpeech ────────────────────────────────────────────────── */
+function useSpeech() {
     const [isSpeaking, setIsSpeaking] = useState(false);
-    const [speed, setSpeed] = useState(1);
-    const utteranceRef = useRef(null);
+    const [speed,      setSpeed]      = useState(1);
 
     const speak = useCallback((text) => {
         if (!window.speechSynthesis) return;
         window.speechSynthesis.cancel();
-        const utter = new SpeechSynthesisUtterance(text);
-        utter.rate = speed;
-        utter.pitch = 1;
-        utter.lang = 'en-US';
-        utter.onstart = () => setIsSpeaking(true);
-        utter.onend = () => setIsSpeaking(false);
-        utter.onerror = () => setIsSpeaking(false);
-        utteranceRef.current = utter;
-        window.speechSynthesis.speak(utter);
+        const u = new SpeechSynthesisUtterance(text);
+        u.rate = speed; u.pitch = 1; u.lang = 'en-US';
+        u.onstart = () => setIsSpeaking(true);
+        u.onend   = () => setIsSpeaking(false);
+        u.onerror = () => setIsSpeaking(false);
+        window.speechSynthesis.speak(u);
     }, [speed]);
 
     const stop = useCallback(() => {
-        if (!window.speechSynthesis) return;
-        window.speechSynthesis.cancel();
+        window.speechSynthesis?.cancel();
         setIsSpeaking(false);
     }, []);
 
     useEffect(() => () => window.speechSynthesis?.cancel(), []);
-
     return { isSpeaking, speak, stop, speed, setSpeed };
-};
-// ───────────────────────────────────────────────────────────────────────────
+}
 
-const InterviewPage = () => {
-    const navigate = useNavigate();
-    const location = useLocation();
-
-    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [answers, setAnswers] = useState([]);
-    const [submitting, setSubmitting] = useState(false);
-
-    // Timer-related state
-    const [showExpiredModal, setShowExpiredModal] = useState(false);
-    const [exceededTime, setExceededTime] = useState(false);
-
-    const { sessionId, questions, role, totalQuestions } = location.state || {};
-    const { isSpeaking, speak, stop, speed, setSpeed } = useSpeech();
-
-    // Session timer — fires onExpire when 5 min is up
-    const { timeLeft, getElapsed } = useTimer(SESSION_DURATION, () => {
-        setShowExpiredModal(true);
-    });
-
-    useEffect(() => {
-        if (!sessionId || !questions || questions.length === 0) {
-            navigate('/interview');
-        }
-    }, [sessionId, questions, navigate]);
-
-    useEffect(() => {
-        if (questions && questions.length > 0) {
-            setAnswers(questions.map(q => ({ questionId: q._id, selectedAnswer: null })));
-        }
-    }, [questions]);
-
-    useEffect(() => {
-        if (questions && questions[currentQuestionIndex]) {
-            speak(questions[currentQuestionIndex].question);
-        }
-    }, [currentQuestionIndex]); // eslint-disable-line react-hooks/exhaustive-deps
-
-    if (!sessionId || !questions) return null;
-
-    const currentQuestion = questions[currentQuestionIndex];
-    const currentAnswer   = answers[currentQuestionIndex];
-    const progress        = ((currentQuestionIndex + 1) / totalQuestions) * 100;
-    const isFirstQuestion = currentQuestionIndex === 0;
-    const isLastQuestion  = currentQuestionIndex === totalQuestions - 1;
-
-    const handleOptionSelect = (optionIndex) => {
-        const newAnswers = [...answers];
-        newAnswers[currentQuestionIndex] = {
-            questionId: currentQuestion._id,
-            selectedAnswer: optionIndex,
-        };
-        setAnswers(newAnswers);
-    };
-
-    const handlePrevious = () => { if (!isFirstQuestion) setCurrentQuestionIndex(p => p - 1); };
-    const handleNext     = () => { if (!isLastQuestion)  setCurrentQuestionIndex(p => p + 1); };
-
-    // Core submit logic — forceExceeded=true when user clicks "End Interview Now"
-    const handleSubmit = async (forceExceeded = false) => {
-        try {
-            setSubmitting(true);
-            setShowExpiredModal(false);
-
-            const isOverTime = forceExceeded || exceededTime;
-            const timeTaken  = getElapsed();
-
-            // Unanswered-question confirm (skip when timer forces submit)
-            if (!forceExceeded) {
-                const unansweredCount = answers.filter(a => a.selectedAnswer === null).length;
-                if (unansweredCount > 0) {
-                    const ok = window.confirm(
-                        `You have ${unansweredCount} unanswered question(s). Submit anyway?`
-                    );
-                    if (!ok) { setSubmitting(false); return; }
-                }
-            }
-
-            const response = await api.post('/interview/submit', { sessionId, answers });
-
-            navigate('/interview/report', {
-                state: {
-                    sessionId:      response.data.sessionId,
-                    score:          response.data.score,
-                    totalQuestions: response.data.totalQuestions,
-                    correctAnswers: response.data.correctAnswers,
-                    wrongAnswers:   response.data.wrongAnswers,
-                    percentage:     response.data.percentage,
-                    role,
-                    evaluation:     response.data.evaluation || null,
-                    timeTaken,
-                    exceededTime:   isOverTime,
-                },
-            });
-        } catch (err) {
-            console.error('Error submitting interview:', err);
-            alert(err.response?.data?.message || 'Failed to submit interview. Please try again.');
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
-    const handleExpiredEnd       = () => handleSubmit(true);
-    const handleContinueAfterExpiry = () => { setExceededTime(true); setShowExpiredModal(false); };
-
+/* ─── TimerExpiredModal ────────────────────────────────────────── */
+function TimerExpiredModal({ onEndNow, onContinue }) {
     return (
-        <div className="container mt-4">
-
-            {/* Pulse keyframe */}
-            <style>{`
-                @keyframes timerPulse {
-                    0%, 100% { opacity: 1; transform: scale(1); }
-                    50%       { opacity: 0.72; transform: scale(1.05); }
-                }
-            `}</style>
-
-            {/* Time's Up modal */}
-            {showExpiredModal && (
-                <TimerExpiredModal
-                    onEndNow={handleExpiredEnd}
-                    onContinue={handleContinueAfterExpiry}
-                />
-            )}
-
-            <div className="row justify-content-center">
-                <div className="col-lg-9">
-
-                    {/* ── Header ── */}
-                    <div className="text-center mb-4">
-                        <h2 className="fw-bold gradient-text mb-1">
-                            {role && role.charAt(0).toUpperCase() + role.slice(1)} Interview
-                        </h2>
-                        <p className="text-muted mb-3">
-                            Question <strong>{currentQuestionIndex + 1}</strong> of <strong>{totalQuestions}</strong>
-                        </p>
-
-                        {/* Timer row */}
-                        <div className="d-flex justify-content-center align-items-center gap-3 mb-3 flex-wrap">
-                            <TimerBadge timeLeft={timeLeft} totalSeconds={SESSION_DURATION} />
-                            {exceededTime && (
-                                <span style={{
-                                    display: 'inline-flex', alignItems: 'center', gap: '5px',
-                                    padding: '5px 13px', borderRadius: '20px',
-                                    background: 'rgba(239,68,68,0.1)', border: '1.5px solid #ef4444',
-                                    color: '#ef4444', fontWeight: 600, fontSize: '0.82rem',
-                                }}>
-                                    <FiAlertTriangle size={13} /> Over Time
-                                </span>
-                            )}
-                        </div>
-
-                        {/* Progress bar */}
-                        <div className="progress" style={{ height: '8px' }}>
-                            <div
-                                className="progress-bar"
-                                role="progressbar"
-                                style={{ width: `${progress}%`, transition: 'width 0.3s ease' }}
-                                aria-valuenow={progress}
-                                aria-valuemin="0"
-                                aria-valuemax="100"
-                            />
-                        </div>
-                    </div>
-
-                    {/* ── Question Card ── */}
-                    <div className="card shadow-lg border-0 mb-4">
-                        <div className="card-body p-4 p-md-5">
-
-                            {/* Question text */}
-                            <div className="mb-4">
-                                <div className="d-flex align-items-start mb-3">
-                                    <div
-                                        className="rounded-circle me-3 d-flex align-items-center justify-content-center"
-                                        style={{
-                                            width: '40px', height: '40px',
-                                            background: 'var(--primary-color)', flexShrink: 0,
-                                        }}
-                                    >
-                                        <span className="text-white fw-bold">Q</span>
-                                    </div>
-                                    <h4 className="mb-0 fw-semibold" style={{ lineHeight: '1.6' }}>
-                                        {currentQuestion.question}
-                                    </h4>
-                                </div>
-
-                                {/* TTS Toolbar */}
-                                <div style={{
-                                    display: 'flex', alignItems: 'center', gap: '8px',
-                                    padding: '8px 12px',
-                                    background: 'rgba(var(--primary-rgb,99,102,241),0.06)',
-                                    borderRadius: '12px',
-                                    border: '1px solid rgba(var(--primary-rgb,99,102,241),0.18)',
-                                    flexWrap: 'wrap', marginLeft: '52px',
-                                }}>
-                                    <FiVolume2 size={14} style={{ color: 'var(--primary-color)', flexShrink: 0 }} />
-                                    <span style={{ fontSize: '0.75rem', color: 'var(--primary-color)', fontWeight: 600, marginRight: '4px' }}>Voice</span>
-                                    <select
-                                        value={speed}
-                                        onChange={e => setSpeed(parseFloat(e.target.value))}
-                                        style={{
-                                            fontSize: '0.75rem',
-                                            border: '1px solid rgba(99,102,241,0.3)',
-                                            borderRadius: '8px', padding: '3px 8px',
-                                            color: 'var(--primary-color)', background: '#fff',
-                                            cursor: 'pointer', outline: 'none',
-                                        }}
-                                        title="Reading speed"
-                                    >
-                                        <option value={0.75}>🐢 Slow</option>
-                                        <option value={1}>Normal</option>
-                                        <option value={1.5}>🐇 Fast</option>
-                                    </select>
-                                    <button
-                                        onClick={() => speak(currentQuestion.question)}
-                                        disabled={isSpeaking}
-                                        style={{
-                                            display: 'flex', alignItems: 'center', gap: '5px',
-                                            fontSize: '0.78rem', fontWeight: 600,
-                                            padding: '4px 12px', borderRadius: '8px', border: 'none',
-                                            cursor: isSpeaking ? 'default' : 'pointer',
-                                            background: isSpeaking ? 'rgba(99,102,241,0.25)' : 'var(--primary-color)',
-                                            color: '#fff', transition: 'background 0.2s',
-                                        }}
-                                    >
-                                        <FiVolume2 size={13} />
-                                        {isSpeaking ? 'Reading…' : 'Read Aloud'}
-                                    </button>
-                                    {isSpeaking && (
-                                        <button
-                                            onClick={stop}
-                                            style={{
-                                                display: 'flex', alignItems: 'center', gap: '5px',
-                                                fontSize: '0.78rem', fontWeight: 600,
-                                                padding: '4px 12px', borderRadius: '8px', border: 'none',
-                                                cursor: 'pointer',
-                                                background: 'rgba(239,68,68,0.85)', color: '#fff',
-                                                transition: 'background 0.2s',
-                                            }}
-                                        >
-                                            <FiSquare size={11} /> Stop
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Options */}
-                            <div className="mt-4">
-                                <label className="form-label fw-semibold mb-3">Select your answer:</label>
-                                <div className="d-flex flex-column gap-3">
-                                    {currentQuestion.options.map((option, index) => (
-                                        <div
-                                            key={index}
-                                            className={`form-check p-3 rounded border ${
-                                                currentAnswer?.selectedAnswer === index
-                                                    ? 'border-primary bg-primary bg-opacity-10'
-                                                    : 'border-secondary'
-                                            }`}
-                                            style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
-                                            onClick={() => handleOptionSelect(index)}
-                                        >
-                                            <input
-                                                className="form-check-input"
-                                                type="radio"
-                                                name="answer"
-                                                id={`option-${index}`}
-                                                checked={currentAnswer?.selectedAnswer === index}
-                                                onChange={() => handleOptionSelect(index)}
-                                                style={{ cursor: 'pointer' }}
-                                            />
-                                            <label
-                                                className="form-check-label ms-2 w-100"
-                                                htmlFor={`option-${index}`}
-                                                style={{ cursor: 'pointer' }}
-                                            >
-                                                {option}
-                                            </label>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Navigation */}
-                            <div className="d-flex justify-content-between mt-5 pt-4 border-top">
-                                <button
-                                    className="btn btn-outline-secondary d-flex align-items-center"
-                                    onClick={handlePrevious}
-                                    disabled={isFirstQuestion}
-                                >
-                                    <FiChevronLeft className="me-2" size={20} />
-                                    Previous
-                                </button>
-
-                                {!isLastQuestion ? (
-                                    <button
-                                        className="btn btn-primary d-flex align-items-center"
-                                        onClick={handleNext}
-                                    >
-                                        Next
-                                        <FiChevronRight className="ms-2" size={20} />
-                                    </button>
-                                ) : (
-                                    <button
-                                        className="btn btn-success btn-lg d-flex align-items-center"
-                                        onClick={() => handleSubmit(false)}
-                                        disabled={submitting}
-                                    >
-                                        {submitting ? (
-                                            <>
-                                                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />
-                                                Submitting...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <FiCheckCircle className="me-2" size={20} />
-                                                Submit Interview
-                                            </>
-                                        )}
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* ── Question Navigator ── */}
-                    <div className="card shadow-sm border-0">
-                        <div className="card-body p-3">
-                            <p className="mb-2 small fw-semibold text-muted">Question Progress:</p>
-                            <div className="d-flex flex-wrap gap-2">
-                                {questions.map((_, index) => (
-                                    <button
-                                        key={index}
-                                        className={`btn btn-sm ${
-                                            answers[index]?.selectedAnswer !== null
-                                                ? 'btn-success'
-                                                : index === currentQuestionIndex
-                                                    ? 'btn-primary'
-                                                    : 'btn-outline-secondary'
-                                        }`}
-                                        onClick={() => setCurrentQuestionIndex(index)}
-                                        style={{ minWidth: '40px', height: '40px', whiteSpace: 'nowrap' }}
-                                    >
-                                        {index + 1}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
+        <div style={{
+            position: 'fixed', inset: 0, zIndex: 9999,
+            background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+            <div style={{
+                background: '#1c1c2e', border: '1px solid rgba(139,92,246,0.3)',
+                borderRadius: '18px', padding: '36px 40px',
+                maxWidth: '380px', width: '92%', textAlign: 'center',
+                boxShadow: '0 24px 60px rgba(0,0,0,0.5)',
+            }}>
+                <div style={{ fontSize: '2.8rem', marginBottom: '14px' }}>⏰</div>
+                <p style={{ color: '#e2e8f0', fontWeight: 600, fontSize: '1rem', marginBottom: '26px', lineHeight: 1.7 }}>
+                    Time is over — do you want to end the interview or continue?
+                </p>
+                <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                    <button onClick={onEndNow} style={{
+                        padding: '10px 24px', borderRadius: '10px', border: 'none',
+                        background: 'linear-gradient(135deg,#6366f1,#4f46e5)',
+                        color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: '0.9rem',
+                    }}>End Interview</button>
+                    <button onClick={onContinue} style={{
+                        padding: '10px 24px', borderRadius: '10px',
+                        border: '1.5px solid rgba(255,255,255,0.15)',
+                        background: 'transparent', color: '#94a3b8',
+                        fontWeight: 600, cursor: 'pointer', fontSize: '0.9rem',
+                    }}>Continue</button>
                 </div>
             </div>
         </div>
     );
-};
+}
 
-export default InterviewPage;
+/* ─── Main Component ───────────────────────────────────────────── */
+export default function InterviewPage() {
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    const [qIdx,       setQIdx]       = useState(0);
+    const [answers,    setAnswers]    = useState([]);
+    const [submitting, setSubmitting] = useState(false);
+    const [showModal,  setShowModal]  = useState(false);
+    const [overTime,   setOverTime]   = useState(false);
+
+    const { sessionId, questions, role, totalQuestions } = location.state || {};
+    const { isSpeaking, speak, stop, speed, setSpeed }   = useSpeech();
+    const { timeLeft, getElapsed } = useTimer(SESSION_DURATION, () => setShowModal(true));
+
+    /* redirect if no session */
+    useEffect(() => {
+        if (!sessionId || !questions?.length) navigate('/interview');
+    }, [sessionId, questions, navigate]);
+
+    /* initialise answers array */
+    useEffect(() => {
+        if (questions?.length) setAnswers(questions.map(q => ({ questionId: q._id, selectedAnswer: null })));
+    }, [questions]);
+
+    /* auto-read question */
+    useEffect(() => {
+        if (questions?.[qIdx]) speak(questions[qIdx].question);
+    }, [qIdx]); // eslint-disable-line
+
+    if (!sessionId || !questions) return null;
+
+    const q          = questions[qIdx];
+    const curAnswer  = answers[qIdx];
+    const isFirst    = qIdx === 0;
+    const isLast     = qIdx === totalQuestions - 1;
+    const answered   = answers.filter(a => a.selectedAnswer !== null).length;
+
+    /* timer colour */
+    const pct        = (timeLeft / SESSION_DURATION) * 100;
+    const tColor     = pct > 50 ? '#10b981' : pct > 20 ? '#f59e0b' : '#ef4444';
+    const tBg        = pct > 50 ? 'rgba(16,185,129,0.12)' : pct > 20 ? 'rgba(245,158,11,0.12)' : 'rgba(239,68,68,0.14)';
+    const mm         = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+    const ss         = String(timeLeft % 60).padStart(2, '0');
+
+    function selectOption(i) {
+        const next = [...answers];
+        next[qIdx] = { questionId: q._id, selectedAnswer: i };
+        setAnswers(next);
+    }
+
+    async function handleSubmit(forceExceeded = false) {
+        setSubmitting(true);
+        setShowModal(false);
+        const isOver   = forceExceeded || overTime;
+        const elapsed  = getElapsed();
+
+        if (!forceExceeded) {
+            const unanswered = answers.filter(a => a.selectedAnswer === null).length;
+            if (unanswered > 0 && !window.confirm(`${unanswered} question(s) unanswered. Submit anyway?`)) {
+                setSubmitting(false); return;
+            }
+        }
+        try {
+            const res = await api.post('/interview/submit', { sessionId, answers });
+            navigate('/interview/report', {
+                state: {
+                    sessionId:      res.data.sessionId,
+                    score:          res.data.score,
+                    totalQuestions: res.data.totalQuestions,
+                    correctAnswers: res.data.correctAnswers,
+                    wrongAnswers:   res.data.wrongAnswers,
+                    percentage:     res.data.percentage,
+                    role,
+                    evaluation:     res.data.evaluation || null,
+                    timeTaken:      elapsed,
+                    exceededTime:   isOver,
+                },
+            });
+        } catch (err) {
+            alert(err.response?.data?.message || 'Submit failed. Try again.');
+            setSubmitting(false);
+        }
+    }
+
+    /* ── Render ── */
+    return (
+        <>
+            <style>{`
+                @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.7;transform:scale(1.06)} }
+                .opt-card { transition: transform .15s, border-color .15s, background .15s; }
+                .opt-card:hover { transform: translateX(4px); border-color: rgba(139,92,246,.6) !important; background: rgba(139,92,246,.08) !important; }
+                .qnav:hover { background: rgba(139,92,246,.22) !important; }
+            `}</style>
+
+            {showModal && (
+                <TimerExpiredModal
+                    onEndNow={() => handleSubmit(true)}
+                    onContinue={() => { setOverTime(true); setShowModal(false); }}
+                />
+            )}
+
+            {/* ════════ SPLIT LAYOUT ════════ */}
+            <div style={{
+                display: 'flex',
+                height: 'calc(100vh - 64px)',
+                overflow: 'hidden',
+                background: '#0b0b18',
+                fontFamily: "'Inter', system-ui, sans-serif",
+            }}>
+
+                {/* ══ LEFT PANEL ══ */}
+                <div style={{
+                    width: '42%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    padding: '24px 28px',
+                    borderRight: '1px solid rgba(139,92,246,.14)',
+                    background: 'linear-gradient(155deg,#0d0d20 0%,#110f28 100%)',
+                    overflow: 'hidden',
+                    gap: '16px',
+                }}>
+
+                    {/* Row 1 – badge + counter */}
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                        <div>
+                            <span style={{
+                                background: 'rgba(139,92,246,.15)', border: '1px solid rgba(139,92,246,.3)',
+                                color: '#a78bfa', padding: '4px 12px', borderRadius: '20px',
+                                fontSize: '0.72rem', fontWeight: 600, letterSpacing: '.04em',
+                            }}>MCQ Interview</span>
+                            <div style={{ color: '#e2e8f0', fontWeight: 700, fontSize: '1rem', marginTop: '8px' }}>
+                                {role ? role.charAt(0).toUpperCase() + role.slice(1) : ''} Round
+                            </div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontSize: '2.2rem', fontWeight: 800, lineHeight: 1, color: '#a78bfa' }}>
+                                {qIdx + 1}<span style={{ color: '#3f3a6e', fontSize: '1.3rem' }}>/{totalQuestions}</span>
+                            </div>
+                            <div style={{ color: '#6b7280', fontSize: '0.7rem', marginTop: '2px' }}>Question</div>
+                        </div>
+                    </div>
+
+                    {/* Row 2 – timer */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                        <span style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '7px',
+                            padding: '7px 16px', borderRadius: '30px',
+                            background: tBg, border: `1.5px solid ${tColor}`,
+                            color: tColor, fontWeight: 700, fontSize: '1.05rem',
+                            ...(pct < 20 ? { animation: 'pulse 1s ease-in-out infinite' } : {}),
+                        }}>
+                            <FiClock size={15} />{mm}:{ss}
+                            <span style={{ fontSize: '0.7rem', fontWeight: 500, opacity: .8 }}>remaining</span>
+                        </span>
+                        {overTime && (
+                            <span style={{
+                                display: 'inline-flex', alignItems: 'center', gap: '4px',
+                                color: '#ef4444', fontSize: '0.76rem', fontWeight: 600,
+                            }}>
+                                <FiAlertTriangle size={12} /> Over Time
+                            </span>
+                        )}
+                    </div>
+
+                    {/* Row 3 – progress */}
+                    <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                            <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>Progress</span>
+                            <span style={{ color: '#a78bfa', fontSize: '0.7rem', fontWeight: 600 }}>{answered}/{totalQuestions} answered</span>
+                        </div>
+                        <div style={{ height: '5px', background: 'rgba(139,92,246,.15)', borderRadius: '10px', overflow: 'hidden' }}>
+                            <div style={{
+                                height: '100%', borderRadius: '10px',
+                                width: `${(answered / totalQuestions) * 100}%`,
+                                background: 'linear-gradient(90deg,#6366f1,#a78bfa)',
+                                transition: 'width .4s ease',
+                            }} />
+                        </div>
+                    </div>
+
+                    {/* Row 4 – question box (flex-grows to fill) */}
+                    <div style={{
+                        flex: 1,
+                        background: 'rgba(139,92,246,.06)',
+                        border: '1px solid rgba(139,92,246,.15)',
+                        borderRadius: '16px',
+                        padding: '20px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        overflow: 'hidden',
+                        minHeight: 0,
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+                            <div style={{
+                                width: '30px', height: '30px', borderRadius: '50%', flexShrink: 0,
+                                background: 'linear-gradient(135deg,#6366f1,#a78bfa)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                color: '#fff', fontWeight: 700, fontSize: '0.8rem',
+                            }}>Q</div>
+                            <span style={{ color: '#6b7280', fontSize: '0.74rem', fontWeight: 600 }}>
+                                Question {qIdx + 1} of {totalQuestions}
+                            </span>
+                        </div>
+
+                        <p style={{
+                            color: '#e2e8f0', fontWeight: 600, fontSize: '0.97rem',
+                            lineHeight: 1.75, margin: 0, flex: 1,
+                            overflow: 'hidden', display: '-webkit-box',
+                            WebkitLineClamp: 6, WebkitBoxOrient: 'vertical',
+                        }}>
+                            {q.question}
+                        </p>
+
+                        {/* TTS */}
+                        <div style={{
+                            marginTop: '14px', paddingTop: '14px',
+                            borderTop: '1px solid rgba(139,92,246,.12)',
+                            display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap',
+                        }}>
+                            <FiVolume2 size={13} style={{ color: '#a78bfa' }} />
+                            <select
+                                value={speed} onChange={e => setSpeed(parseFloat(e.target.value))}
+                                style={{
+                                    fontSize: '0.72rem', border: '1px solid rgba(139,92,246,.25)',
+                                    borderRadius: '6px', padding: '3px 7px',
+                                    color: '#a78bfa', background: 'rgba(139,92,246,.1)',
+                                    cursor: 'pointer', outline: 'none',
+                                }}
+                            >
+                                <option value={0.75}>🐢 Slow</option>
+                                <option value={1}>Normal</option>
+                                <option value={1.5}>🐇 Fast</option>
+                            </select>
+                            <button
+                                onClick={() => speak(q.question)} disabled={isSpeaking}
+                                style={{
+                                    display: 'flex', alignItems: 'center', gap: '5px',
+                                    fontSize: '0.72rem', fontWeight: 600,
+                                    padding: '4px 11px', borderRadius: '8px', border: 'none',
+                                    background: isSpeaking ? 'rgba(139,92,246,.2)' : 'rgba(139,92,246,.8)',
+                                    color: '#fff', cursor: isSpeaking ? 'default' : 'pointer',
+                                }}
+                            >
+                                <FiVolume2 size={12} />{isSpeaking ? 'Reading…' : 'Read Aloud'}
+                            </button>
+                            {isSpeaking && (
+                                <button onClick={stop} style={{
+                                    display: 'flex', alignItems: 'center', gap: '4px',
+                                    fontSize: '0.72rem', fontWeight: 600,
+                                    padding: '4px 10px', borderRadius: '8px', border: 'none',
+                                    background: 'rgba(239,68,68,.8)', color: '#fff', cursor: 'pointer',
+                                }}>
+                                    <FiSquare size={10} /> Stop
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Row 5 – Q navigator */}
+                    <div>
+                        <div style={{ color: '#4b5563', fontSize: '0.68rem', fontWeight: 600, letterSpacing: '.05em', textTransform: 'uppercase', marginBottom: '8px' }}>
+                            Jump to question
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                            {questions.map((_, i) => {
+                                const done    = answers[i]?.selectedAnswer !== null;
+                                const current = i === qIdx;
+                                return (
+                                    <button key={i} className="qnav" onClick={() => setQIdx(i)} style={{
+                                        width: '30px', height: '30px', borderRadius: '8px',
+                                        border: current ? '2px solid #a78bfa' : '1.5px solid rgba(139,92,246,.2)',
+                                        background: done ? 'rgba(16,185,129,.18)' : current ? 'rgba(139,92,246,.25)' : 'rgba(139,92,246,.05)',
+                                        color: done ? '#10b981' : current ? '#a78bfa' : '#6b7280',
+                                        fontWeight: 700, fontSize: '0.75rem', cursor: 'pointer',
+                                    }}>{i + 1}</button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+
+                {/* ══ RIGHT PANEL ══ */}
+                <div style={{
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    padding: '24px 32px',
+                    background: '#0f0f1e',
+                    overflow: 'hidden',
+                }}>
+                    {/* Header */}
+                    <div style={{ marginBottom: '18px' }}>
+                        <div style={{ color: '#475569', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase' }}>
+                            Select your answer
+                        </div>
+                    </div>
+
+                    {/* Options */}
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px', justifyContent: 'center', overflow: 'hidden' }}>
+                        {q.options.map((opt, i) => {
+                            const sel = curAnswer?.selectedAnswer === i;
+                            return (
+                                <div
+                                    key={i}
+                                    className="opt-card"
+                                    onClick={() => selectOption(i)}
+                                    style={{
+                                        display: 'flex', alignItems: 'center', gap: '14px',
+                                        padding: '14px 18px', borderRadius: '14px', cursor: 'pointer',
+                                        border: sel ? '2px solid #8b5cf6' : '1.5px solid rgba(255,255,255,.07)',
+                                        background: sel ? 'rgba(139,92,246,.14)' : 'rgba(255,255,255,.03)',
+                                        boxShadow: sel ? '0 0 0 4px rgba(139,92,246,.1)' : 'none',
+                                    }}
+                                >
+                                    <div style={{
+                                        width: '34px', height: '34px', borderRadius: '10px', flexShrink: 0,
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        background: sel ? 'linear-gradient(135deg,#6366f1,#a78bfa)' : 'rgba(139,92,246,.1)',
+                                        color: sel ? '#fff' : '#a78bfa',
+                                        fontWeight: 700, fontSize: '0.82rem',
+                                        border: sel ? 'none' : '1px solid rgba(139,92,246,.2)',
+                                    }}>{LETTERS[i]}</div>
+                                    <span style={{ color: sel ? '#e2e8f0' : '#94a3b8', fontWeight: sel ? 600 : 400, fontSize: '0.93rem', lineHeight: 1.5 }}>
+                                        {opt}
+                                    </span>
+                                    {sel && <FiCheckCircle size={17} style={{ marginLeft: 'auto', color: '#a78bfa', flexShrink: 0 }} />}
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* Navigation */}
+                    <div style={{
+                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                        paddingTop: '20px', marginTop: '16px',
+                        borderTop: '1px solid rgba(255,255,255,.06)',
+                    }}>
+                        <button
+                            onClick={() => !isFirst && setQIdx(p => p - 1)}
+                            disabled={isFirst}
+                            style={{
+                                display: 'flex', alignItems: 'center', gap: '7px',
+                                padding: '10px 20px', borderRadius: '10px',
+                                border: '1.5px solid rgba(255,255,255,.1)', background: 'transparent',
+                                color: isFirst ? '#2d3748' : '#94a3b8',
+                                fontWeight: 600, fontSize: '0.88rem',
+                                cursor: isFirst ? 'not-allowed' : 'pointer',
+                            }}
+                        ><FiChevronLeft size={17} /> Previous</button>
+
+                        <span style={{ color: '#374151', fontSize: '0.8rem' }}>
+                            <span style={{ color: '#10b981', fontWeight: 700 }}>{answered}</span> / {totalQuestions} answered
+                        </span>
+
+                        {!isLast ? (
+                            <button
+                                onClick={() => setQIdx(p => p + 1)}
+                                style={{
+                                    display: 'flex', alignItems: 'center', gap: '7px',
+                                    padding: '10px 24px', borderRadius: '10px', border: 'none',
+                                    background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
+                                    color: '#fff', fontWeight: 700, fontSize: '0.88rem',
+                                    cursor: 'pointer', boxShadow: '0 4px 14px rgba(99,102,241,.35)',
+                                }}
+                            >Next <FiChevronRight size={17} /></button>
+                        ) : (
+                            <button
+                                onClick={() => handleSubmit(false)}
+                                disabled={submitting}
+                                style={{
+                                    display: 'flex', alignItems: 'center', gap: '7px',
+                                    padding: '10px 24px', borderRadius: '10px', border: 'none',
+                                    background: submitting ? '#1f2937' : 'linear-gradient(135deg,#10b981,#059669)',
+                                    color: '#fff', fontWeight: 700, fontSize: '0.88rem',
+                                    cursor: submitting ? 'not-allowed' : 'pointer',
+                                    boxShadow: '0 4px 14px rgba(16,185,129,.3)',
+                                }}
+                            >
+                                {submitting
+                                    ? <><span className="spinner-border spinner-border-sm me-1" /> Submitting…</>
+                                    : <><FiCheckCircle size={16} /> Submit Interview</>
+                                }
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </>
+    );
+}

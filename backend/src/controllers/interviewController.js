@@ -3,403 +3,212 @@ const InterviewSession = require('../models/InterviewSession');
 const InterviewEvaluation = require('../models/InterviewEvaluation');
 const { generateEvaluation } = require('../services/interviewEvaluationService');
 
-// Start a new interview session
-// Fetches 10 random questions by role and difficulty, creates a session
+// POST /api/interview/start — fetch 10 random questions by role/difficulty and create a session
 const startInterview = async (req, res) => {
   try {
     const { role, difficulty } = req.body;
 
-    // Validate role
-    if (!role) {
-      return res.status(400).json({ message: 'Role is required' });
-    }
+    if (!role) return res.status(400).json({ message: 'Role is required' });
 
     const validRoles = ['frontend', 'backend', 'mern', 'hr', 'aptitude'];
-    if (!validRoles.includes(role)) {
-      return res.status(400).json({
-        message: `Invalid role. Must be one of: ${validRoles.join(', ')}`
-      });
-    }
+    if (!validRoles.includes(role))
+      return res.status(400).json({ message: `Invalid role. Must be one of: ${validRoles.join(', ')}` });
 
-    // Validate difficulty (optional for backward compatibility)
     if (difficulty) {
       const validDifficulties = ['easy', 'medium', 'hard'];
-      if (!validDifficulties.includes(difficulty)) {
-        return res.status(400).json({
-          message: `Invalid difficulty. Must be one of: ${validDifficulties.join(', ')}`
-        });
-      }
+      if (!validDifficulties.includes(difficulty))
+        return res.status(400).json({ message: `Invalid difficulty. Must be one of: ${validDifficulties.join(', ')}` });
     }
 
-    // Build match query for MongoDB aggregation
-    const matchQuery = { role: role };
-    if (difficulty) {
-      matchQuery.difficulty = difficulty;
-    }
+    const matchQuery = { role };
+    if (difficulty) matchQuery.difficulty = difficulty;
 
-    // Fetch 10 random questions using MongoDB aggregation
-    let randomQuestions = await Question.aggregate([
-      { $match: matchQuery },
-      { $sample: { size: 10 } }
-    ]);
+    let randomQuestions = await Question.aggregate([{ $match: matchQuery }, { $sample: { size: 10 } }]);
 
-    // Fallback: if no questions match role+difficulty, try role only (any difficulty)
+    // If no exact match, fall back to any difficulty for that role
     if (randomQuestions.length === 0 && difficulty) {
-      console.warn(`No questions found for role=${role}, difficulty=${difficulty}. Falling back to any difficulty.`);
-      randomQuestions = await Question.aggregate([
-        { $match: { role: role } },
-        { $sample: { size: 10 } }
-      ]);
+      console.warn(`No questions for role=${role}, difficulty=${difficulty}. Falling back to any difficulty.`);
+      randomQuestions = await Question.aggregate([{ $match: { role } }, { $sample: { size: 10 } }]);
     }
 
-    // Handle case with no questions at all for this role
-    if (randomQuestions.length === 0) {
-      return res.status(404).json({
-        message: `No questions found for role: ${role}. Please ensure the database is seeded.`
-      });
-    }
+    if (randomQuestions.length === 0)
+      return res.status(404).json({ message: `No questions found for role: ${role}. Please seed the database.` });
 
-    // Create interview session
     const session = new InterviewSession({
-      userId: req.user.id, // Link session to authenticated user
-      role: role,
-      difficulty: difficulty || 'mixed', // Store difficulty in session
-      questions: randomQuestions.map(q => ({
-        questionId: q._id,
-        selectedAnswer: null
-      })),
+      userId: req.user.id,
+      role,
+      difficulty: difficulty || 'mixed',
+      questions: randomQuestions.map(q => ({ questionId: q._id, selectedAnswer: null })),
       totalQuestions: randomQuestions.length,
-      status: 'started'
+      status: 'started',
     });
-
     await session.save();
 
-    // Prepare questions for response (remove answer and explanation fields for security)
+    // Exclude correct answer and explanation from the client response
     const questionsForFrontend = randomQuestions.map(q => ({
-      _id: q._id,
-      question: q.question,
-      options: q.options,
-      difficulty: q.difficulty,
-      role: q.role,
-      category: q.category
-      // answer and explanation are intentionally excluded
+      _id: q._id, question: q.question, options: q.options,
+      difficulty: q.difficulty, role: q.role, category: q.category,
     }));
 
-    res.status(200).json({
-      sessionId: session._id,
-      role: session.role,
-      difficulty: difficulty,
-      totalQuestions: session.totalQuestions,
-      questions: questionsForFrontend
-    });
-
+    res.status(200).json({ sessionId: session._id, role: session.role, difficulty, totalQuestions: session.totalQuestions, questions: questionsForFrontend });
   } catch (error) {
     console.error('Error starting interview:', error);
     res.status(500).json({ message: 'Failed to start interview session' });
   }
 };
 
-// Submit interview answers and calculate score
+// POST /api/interview/submit — grade answers and generate an evaluation report
 const submitInterview = async (req, res) => {
   try {
     const { sessionId, answers } = req.body;
 
-    // Validate input
-    if (!sessionId || !answers) {
-      return res.status(400).json({ message: 'Session ID and answers are required' });
-    }
+    if (!sessionId || !answers || !Array.isArray(answers))
+      return res.status(400).json({ message: 'Session ID and answers array are required' });
 
-    if (!Array.isArray(answers)) {
-      return res.status(400).json({ message: 'Answers must be an array' });
-    }
-
-    // Find the session
     const session = await InterviewSession.findById(sessionId);
-    if (!session) {
-      return res.status(404).json({ message: 'Interview session not found' });
-    }
+    if (!session) return res.status(404).json({ message: 'Interview session not found' });
 
-    // Verify ownership - only allow user to submit their own sessions
-    // For sessions with userId, ensure it matches the authenticated user
-    if (session.userId && session.userId.toString() !== req.user.id) {
-      return res.status(403).json({
-        message: 'Access denied. You can only submit your own interview sessions.'
-      });
-    }
+    if (session.userId && session.userId.toString() !== req.user.id)
+      return res.status(403).json({ message: 'Access denied. You can only submit your own sessions.' });
 
-    // Check if already completed
-    if (session.status === 'completed') {
+    if (session.status === 'completed')
       return res.status(400).json({ message: 'This interview has already been submitted' });
-    }
 
-    // Get all question IDs from the session
     const questionIds = session.questions.map(q => q.questionId);
-
-    // Fetch all correct answers from database
     const correctQuestions = await Question.find({ _id: { $in: questionIds } });
 
-    // Create a map of questionId -> correct answer
+    // Build a questionId → correctAnswer lookup map
     const answerMap = {};
-    correctQuestions.forEach(q => {
-      answerMap[q._id.toString()] = q.answer;
-    });
+    correctQuestions.forEach(q => { answerMap[q._id.toString()] = q.answer; });
 
-    // Calculate score
-    let score = 0;
-    let correctAnswers = 0;
-    let wrongAnswers = 0;
+    let score = 0, correctAnswers = 0, wrongAnswers = 0;
 
-    // Update session with submitted answers and calculate score
-    answers.forEach(submittedAnswer => {
-      const { questionId, selectedAnswer } = submittedAnswer;
-
-      // Find the question in session
-      const sessionQuestion = session.questions.find(
-        q => q.questionId.toString() === questionId
-      );
-
-      if (sessionQuestion) {
-        // Update selected answer in session
-        sessionQuestion.selectedAnswer = selectedAnswer;
-
-        // Compare with correct answer
-        const correctAnswer = answerMap[questionId];
-        if (selectedAnswer === correctAnswer) {
-          score++;
-          correctAnswers++;
-        } else {
-          wrongAnswers++;
-        }
+    answers.forEach(({ questionId, selectedAnswer }) => {
+      const sessionQ = session.questions.find(q => q.questionId.toString() === questionId);
+      if (sessionQ) {
+        sessionQ.selectedAnswer = selectedAnswer;
+        if (selectedAnswer === answerMap[questionId]) { score++; correctAnswers++; }
+        else wrongAnswers++;
       }
     });
 
-    // Update session
     session.score = score;
     session.status = 'completed';
     await session.save();
 
-    // Calculate percentage
     const percentage = Math.round((score / session.totalQuestions) * 100);
 
-    // Generate intelligent evaluation report
     let evaluation = null;
     try {
-      // Prepare answers with correctness for evaluation
-      const answersForEvaluation = answers.map(ans => {
-        const correctAnswer = answerMap[ans.questionId];
-        return {
-          ...ans,
-          isCorrect: ans.selectedAnswer === correctAnswer,
-        };
-      });
+      const answersForEvaluation = answers.map(ans => ({
+        ...ans, isCorrect: ans.selectedAnswer === answerMap[ans.questionId],
+      }));
 
-      // Generate evaluation using the service
-      const evaluationData = generateEvaluation({
-        questions: correctQuestions,
-        answers: answersForEvaluation,
-        role: session.role,
-        score: score,
-        totalQuestions: session.totalQuestions,
-        percentage: percentage,
-      });
+      const evaluationData = generateEvaluation({ questions: correctQuestions, answers: answersForEvaluation, role: session.role, score, totalQuestions: session.totalQuestions, percentage });
 
-      // Save evaluation to database
-      const newEvaluation = new InterviewEvaluation({
-        sessionId: session._id,
-        role: session.role,
-        score: score,
-        percentage: percentage,
-        strengths: evaluationData.strengths,
-        weaknesses: evaluationData.weaknesses,
-        skillLevel: evaluationData.skillLevel,
-        improvements: evaluationData.improvements,
+      await new InterviewEvaluation({
+        sessionId: session._id, role: session.role, score, percentage,
+        strengths: evaluationData.strengths, weaknesses: evaluationData.weaknesses,
+        skillLevel: evaluationData.skillLevel, improvements: evaluationData.improvements,
         summary: evaluationData.summary,
-      });
+      }).save();
 
-      await newEvaluation.save();
       evaluation = evaluationData;
-
-      console.log('Evaluation generated and saved for session:', session._id);
+      console.log('Evaluation saved for session:', session._id);
     } catch (evalError) {
+      // Non-fatal: evaluation failure should not block the submission response
       console.error('Error generating evaluation:', evalError);
-      // Don't fail the whole request if evaluation fails
-      // Just log the error and continue without evaluation
     }
 
-    // Prepare response with backward compatibility
-    const response = {
-      sessionId: session._id,
-      score: score,
-      totalQuestions: session.totalQuestions,
-      correctAnswers: correctAnswers,
-      wrongAnswers: wrongAnswers,
-      percentage: percentage,
-      status: 'completed',
-    };
-
-    // Add evaluation if successfully generated
-    if (evaluation) {
-      response.evaluation = evaluation;
-    }
+    const response = { sessionId: session._id, score, totalQuestions: session.totalQuestions, correctAnswers, wrongAnswers, percentage, status: 'completed' };
+    if (evaluation) response.evaluation = evaluation;
 
     res.status(200).json(response);
-
   } catch (error) {
     console.error('Error submitting interview:', error);
     res.status(500).json({ message: 'Failed to submit interview' });
   }
 };
 
-// Get recent interview sessions for dashboard
-// Fetches completed sessions with evaluation data
+// GET /api/interview/recent — last 5 completed sessions for the dashboard
 const getRecentInterviews = async (req, res) => {
   try {
-    // Fetch 5 most recent completed sessions for authenticated user only
-    const sessions = await InterviewSession.find({
-      status: 'completed',
-      userId: req.user.id // Filter by authenticated user
-    })
-      .sort({ createdAt: -1 })
-      .limit(5)
-      .lean();
+    const sessions = await InterviewSession.find({ status: 'completed', userId: req.user.id }).sort({ createdAt: -1 }).limit(5).lean();
 
-    if (!sessions || sessions.length === 0) {
-      return res.status(200).json([]);
-    }
+    if (!sessions?.length) return res.status(200).json([]);
 
-    // Get session IDs
     const sessionIds = sessions.map(s => s._id);
-
-    // Fetch evaluations for these sessions
     const evaluations = await InterviewEvaluation.find({ sessionId: { $in: sessionIds } }).lean();
 
-    // Create evaluation map for quick lookup
     const evalMap = {};
-    evaluations.forEach(evaluation => {
-      evalMap[evaluation.sessionId.toString()] = evaluation;
-    });
+    evaluations.forEach(e => { evalMap[e.sessionId.toString()] = e; });
 
-    // Format response
-    const results = sessions.map(session => {
-      const evaluation = evalMap[session._id.toString()];
-
+    const results = sessions.map(s => {
+      const ev = evalMap[s._id.toString()];
       return {
-        sessionId: session._id,
-        role: session.role,
-        score: session.score,
-        totalQuestions: session.totalQuestions,
-        percentage: evaluation ? evaluation.percentage : Math.round((session.score / session.totalQuestions) * 100),
-        skillLevel: evaluation ? evaluation.skillLevel : 'Unknown',
-        createdAt: session.createdAt,
+        sessionId: s._id, role: s.role, score: s.score, totalQuestions: s.totalQuestions,
+        percentage: ev ? ev.percentage : Math.round((s.score / s.totalQuestions) * 100),
+        skillLevel: ev ? ev.skillLevel : 'Unknown',
+        createdAt: s.createdAt,
       };
     });
 
     res.status(200).json(results);
-
   } catch (error) {
     console.error('Error fetching recent interviews:', error);
     res.status(500).json({ message: 'Failed to fetch recent interviews' });
   }
 };
 
-// Get paginated interview history with filters
-// Fetches completed sessions with evaluation data
+// GET /api/interview/history — paginated history with optional score/date filters
 const getInterviewHistory = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
+    const page  = parseInt(req.query.page)  || 1;
     const limit = parseInt(req.query.limit) || 5;
-    const skip = (page - 1) * limit;
+    const skip  = (page - 1) * limit;
 
-    // Build filter query - only show authenticated user's sessions
-    const filter = {
-      status: 'completed',
-      userId: req.user.id // Filter by authenticated user
-    };
+    const filter = { status: 'completed', userId: req.user.id };
 
-    // Apply score filter if provided
-    if (req.query.minScore) {
-      filter.score = { $gte: parseInt(req.query.minScore) };
-    }
+    if (req.query.minScore) filter.score = { $gte: parseInt(req.query.minScore) };
 
-    // Apply date range filters if provided
     if (req.query.startDate || req.query.endDate) {
       filter.createdAt = {};
-      if (req.query.startDate) {
-        filter.createdAt.$gte = new Date(req.query.startDate);
-      }
+      if (req.query.startDate) filter.createdAt.$gte = new Date(req.query.startDate);
       if (req.query.endDate) {
-        // Set to end of day
-        const endDate = new Date(req.query.endDate);
-        endDate.setHours(23, 59, 59, 999);
-        filter.createdAt.$lte = endDate;
+        const end = new Date(req.query.endDate);
+        end.setHours(23, 59, 59, 999);
+        filter.createdAt.$lte = end;
       }
     }
 
-    // Get total count for pagination
     const totalItems = await InterviewSession.countDocuments(filter);
     const totalPages = Math.ceil(totalItems / limit);
+    const sessions   = await InterviewSession.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean();
 
-    // Fetch paginated sessions
-    const sessions = await InterviewSession.find(filter)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean();
+    if (!sessions?.length)
+      return res.status(200).json({ page, totalPages: 0, totalItems: 0, interviews: [] });
 
-    if (!sessions || sessions.length === 0) {
-      return res.status(200).json({
-        page,
-        totalPages: 0,
-        totalItems: 0,
-        interviews: [],
-      });
-    }
-
-    // Get session IDs
-    const sessionIds = sessions.map(s => s._id);
-
-    // Fetch evaluations for these sessions
+    const sessionIds  = sessions.map(s => s._id);
     const evaluations = await InterviewEvaluation.find({ sessionId: { $in: sessionIds } }).lean();
 
-    // Create evaluation map for quick lookup
     const evalMap = {};
-    evaluations.forEach(evaluation => {
-      evalMap[evaluation.sessionId.toString()] = evaluation;
-    });
+    evaluations.forEach(e => { evalMap[e.sessionId.toString()] = e; });
 
-    // Format response
-    const interviews = sessions.map(session => {
-      const evaluation = evalMap[session._id.toString()];
-
+    const interviews = sessions.map(s => {
+      const ev = evalMap[s._id.toString()];
       return {
-        sessionId: session._id,
-        role: session.role,
-        score: session.score,
-        totalQuestions: session.totalQuestions,
-        percentage: evaluation ? evaluation.percentage : Math.round((session.score / session.totalQuestions) * 100),
-        skillLevel: evaluation ? evaluation.skillLevel : 'Unknown',
-        createdAt: session.createdAt,
+        sessionId: s._id, role: s.role, score: s.score, totalQuestions: s.totalQuestions,
+        percentage: ev ? ev.percentage : Math.round((s.score / s.totalQuestions) * 100),
+        skillLevel: ev ? ev.skillLevel : 'Unknown',
+        createdAt: s.createdAt,
       };
     });
 
-    res.status(200).json({
-      page,
-      totalPages,
-      totalItems,
-      interviews,
-    });
-
+    res.status(200).json({ page, totalPages, totalItems, interviews });
   } catch (error) {
     console.error('Error fetching interview history:', error);
     res.status(500).json({ message: 'Failed to fetch interview history' });
   }
 };
 
-
-
-module.exports = {
-  startInterview,
-  submitInterview,
-  getRecentInterviews,
-  getInterviewHistory,
-};
+module.exports = { startInterview, submitInterview, getRecentInterviews, getInterviewHistory };
