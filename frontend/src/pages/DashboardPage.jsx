@@ -107,7 +107,7 @@ const DashboardPage = () => {
     return <div className="alert alert-danger text-center">{error}</div>;
   }
 
-  if (!results.length) {
+  if (!results.length && !aiResults.length) {
     return (
       <div className="empty-state">
         <div className="empty-state-icon">

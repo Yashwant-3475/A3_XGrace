@@ -92,8 +92,6 @@
 /* ── Home page wrapper ────────────────────────────────────── */
 .home-page {
     background: #090917;
-    /* On desktop: clip so only the hero shows, no scrollbar */
-    overflow: hidden;
 }
 
 /* On mobile: restore normal scrolling */
@@ -640,18 +638,196 @@
     }
 }
 
-@media (max-width: 480px) {
-    .hero-title {
-        font-size: 1.85rem;
-    }
+/* ── How It Works Section ────────────────────────────────── */
+.how-section {
+    padding: 5rem 2rem;
+    background: #090917;
+    position: relative;
+}
 
-    .hero-cta {
+.how-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(124,58,237,0.5), rgba(6,182,212,0.5), transparent);
+}
+
+.how-subtitle {
+    text-align: center;
+    color: rgba(255,255,255,0.5);
+    font-size: 1rem;
+    margin-top: -2rem;
+    margin-bottom: 3.5rem;
+    letter-spacing: 0.02em;
+}
+
+.how-steps {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    gap: 0;
+    flex-wrap: wrap;
+}
+
+.how-step {
+    flex: 1;
+    min-width: 200px;
+    max-width: 260px;
+    text-align: center;
+    padding: 2rem 1.5rem;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 20px;
+    position: relative;
+    transition: all 0.35s ease;
+}
+
+.how-step:hover {
+    background: rgba(124,58,237,0.1);
+    border-color: rgba(124,58,237,0.35);
+    transform: translateY(-6px);
+    box-shadow: 0 16px 48px rgba(124,58,237,0.2);
+}
+
+.how-step__number {
+    position: absolute;
+    top: -16px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(124,58,237,0.5);
+}
+
+.how-step__icon-wrap {
+    width: 68px;
+    height: 68px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 60%, #06b6d4 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0.5rem auto 1.25rem;
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(124,58,237,0.35);
+    transition: all 0.35s ease;
+}
+
+.how-step:hover .how-step__icon-wrap {
+    transform: scale(1.1) rotate(-4deg);
+    box-shadow: 0 12px 32px rgba(124,58,237,0.55);
+}
+
+.how-step__title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #f1f5f9;
+    margin-bottom: 0.6rem;
+    letter-spacing: -0.01em;
+}
+
+.how-step__desc {
+    font-size: 0.88rem;
+    color: #94a3b8;
+    line-height: 1.65;
+    margin: 0;
+}
+
+/* Animated dots connector between steps */
+.how-connector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+    gap: 6px;
+    padding: 0 12px;
+    flex-shrink: 0;
+}
+
+.how-connector span {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(124,58,237,0.5);
+    animation: connectorPulse 1.6s ease-in-out infinite;
+}
+
+.how-connector span:nth-child(2) { animation-delay: 0.2s; }
+.how-connector span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes connectorPulse {
+    0%, 100% { opacity: 0.35; transform: scale(1); }
+    50%       { opacity: 1;    transform: scale(1.3); background: #a78bfa; }
+}
+
+@media (max-width: 768px) {
+    .how-steps {
         flex-direction: column;
         align-items: center;
+        gap: 2rem;
     }
-
-    .cta-button {
+    .how-connector {
+        transform: rotate(90deg);
+        margin: 0;
+        padding: 0;
+    }
+    .how-step {
+        max-width: 90%;
         width: 100%;
-        max-width: 280px;
+    }
+    .how-section {
+        padding: 3.5rem 1.25rem;
+    }
+}
+
+/* ── Footer ──────────────────────────────────────────────── */
+.home-footer {
+    background: #05050f;
+    border-top: 1px solid rgba(124,58,237,0.2);
+    padding: 1.5rem 2rem;
+}
+
+.home-footer__inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.home-footer__brand {
+    display: flex;
+    align-items: center;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #e2d9f3;
+    letter-spacing: -0.01em;
+}
+
+.home-footer__copy {
+    font-size: 0.82rem;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 0.01em;
+}
+
+@media (max-width: 600px) {
+    .home-footer__inner {
+        flex-direction: column;
+        text-align: center;
     }
 }
