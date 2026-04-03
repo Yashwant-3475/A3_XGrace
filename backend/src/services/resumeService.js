@@ -130,7 +130,7 @@ Provide your analysis in the following JSON format (respond ONLY with valid JSON
 /**
  * Keyword-based fallback analysis (SECONDARY)
  * @param {string} resumeText - Extracted text from resume PDF
- * @returns {Object} - Structured analysis object with source: 'FALLBACK'
+ * @returns {Object} - Structured analysis object with source: 'CLASSIC'
  */
 function fallbackAnalyzeResume(resumeText) {
     const lowerText = resumeText.toLowerCase();
@@ -181,7 +181,7 @@ function fallbackAnalyzeResume(resumeText) {
         improvementSuggestions,
         matchedSkills,
         missingSkills,
-        analysisSource: 'FALLBACK',
+        analysisSource: 'CLASSIC',
     };
 }
 
@@ -189,7 +189,7 @@ function fallbackAnalyzeResume(resumeText) {
  * Main resume analysis function (HYBRID)
  * Always returns a valid analysis, never throws
  * @param {string} resumeText - Extracted text from resume PDF
- * @returns {Promise<Object>} - Analysis object with source: 'AI' or 'FALLBACK'
+ * @returns {Promise<Object>} - Analysis object with source: 'AI' or 'CLASSIC'
  */
 async function analyzeResumeText(resumeText) {
     try {

@@ -28,7 +28,7 @@ const resumeSchema = new mongoose.Schema(
         },
         analysisSource: {
             type: String,
-            enum: ['AI', 'FALLBACK'],
+            enum: ['AI', 'CLASSIC'],
             required: true,
         },
     },

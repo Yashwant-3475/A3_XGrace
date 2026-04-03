@@ -90,7 +90,7 @@ const analyzeResume = async (req, res) => {
       note:
         analysis.analysisSource === 'AI'
           ? 'AI-powered semantic analysis'
-          : 'Fallback analysis used (AI service unavailable)',
+          : 'Classic analysis used (AI service unavailable)',
     });
   } catch (error) {
     console.error('❌ Resume analysis error:', error);

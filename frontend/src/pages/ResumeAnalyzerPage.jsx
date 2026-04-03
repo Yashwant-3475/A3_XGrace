@@ -207,7 +207,7 @@ const HistoryPanel = ({ history, onDelete }) => {
                       <p className="rh-item__filename">{item.filename}</p>
                       <p className="rh-item__date">{formatDate(item.createdAt)}</p>
                     </div>
-                    <span className={`rh-item__badge rh-item__badge--${item.analysisSource === 'AI' ? 'ai' : 'fallback'}`}>
+                    <span className={`rh-item__badge rh-item__badge--${item.analysisSource === 'AI' ? 'ai' : 'classic'}`}>
                       {item.analysisSource}
                     </span>
                     <button
@@ -353,7 +353,7 @@ const ResumeAnalyzerPage = () => {
           _id: result.id || Date.now().toString(),
           filename: result.filename || file.name,
           createdAt: new Date().toISOString(),
-          analysisSource: result.analysisType?.toUpperCase() === 'AI' ? 'AI' : 'FALLBACK',
+          analysisSource: result.analysisType?.toUpperCase() === 'AI' ? 'AI' : 'CLASSIC',
           analysis: {
             matchedSkills: result.matchedSkills,
             missingSkills: result.missingSkills,
@@ -366,6 +366,10 @@ const ResumeAnalyzerPage = () => {
           },
         };
         setHistory((prev) => [newRecord, ...prev].slice(0, HISTORY_LIMIT));
+
+        // Clear the upload field after successful analysis
+        setFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
       } else {
         throw new Error(response.data.message || 'Analysis failed');
       }

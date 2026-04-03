@@ -21,7 +21,7 @@ const aiInterviewSessionSchema = new mongoose.Schema(
                 answerText: { type: String, required: true },
                 score: { type: Number, required: true },       // 0-10 from Groq
                 feedback: { type: String, required: true },
-                analysisSource: { type: String, enum: ['AI', 'FALLBACK'], default: 'AI' },
+                analysisSource: { type: String, enum: ['AI', 'CLASSIC'], default: 'AI' },
             },
         ],
         totalQuestions: { type: Number, required: true },

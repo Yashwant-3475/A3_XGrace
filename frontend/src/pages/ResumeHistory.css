@@ -271,7 +271,7 @@
   border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
-.rh-item__badge--fallback {
+.rh-item__badge--classic {
   background: rgba(245, 158, 11, 0.12);
   color: #fcd34d;
   border: 1px solid rgba(245, 158, 11, 0.25);

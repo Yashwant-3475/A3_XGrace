@@ -26,10 +26,10 @@ Scoring guide:
 // Word-count-based fallback used when Groq is unavailable
 const fallbackEvaluate = (answerText) => {
     const words = answerText.trim().split(/\s+/).filter(Boolean).length;
-    if (words < 15)  return { score: 2, feedback: 'Your answer is too brief. Aim for at least 3-4 sentences.', source: 'FALLBACK' };
-    if (words < 40)  return { score: 4, feedback: 'Your answer covers the basics but needs more depth and examples.', source: 'FALLBACK' };
-    if (words < 80)  return { score: 6, feedback: 'Good effort! Add concrete examples and specific outcomes to score higher.', source: 'FALLBACK' };
-    return { score: 7, feedback: 'Well-structured and detailed. Ensure examples are specific and quantifiable.', source: 'FALLBACK' };
+    if (words < 15)  return { score: 2, feedback: 'Your answer is too brief. Aim for at least 3-4 sentences.', source: 'CLASSIC' };
+    if (words < 40)  return { score: 4, feedback: 'Your answer covers the basics but needs more depth and examples.', source: 'CLASSIC' };
+    if (words < 80)  return { score: 6, feedback: 'Good effort! Add concrete examples and specific outcomes to score higher.', source: 'CLASSIC' };
+    return { score: 7, feedback: 'Well-structured and detailed. Ensure examples are specific and quantifiable.', source: 'CLASSIC' };
 };
 
 // POST /api/evaluations — evaluate an answer via Groq AI (falls back to rule engine)
@@ -76,7 +76,7 @@ const evaluateAnswer = async (req, res) => {
                 const fb = fallbackEvaluate(answerText);
                 aiScore = fb.score;
                 aiFeedback = fb.feedback + '\n\n(Note: AI evaluation is temporarily unavailable.)';
-                analysisSource = 'FALLBACK';
+                analysisSource = 'CLASSIC';
             }
         } else {
             // No API key configured — use fallback
@@ -84,7 +84,7 @@ const evaluateAnswer = async (req, res) => {
             const fb = fallbackEvaluate(answerText);
             aiScore = fb.score;
             aiFeedback = fb.feedback + '\n\n(Note: AI evaluation is not configured.)';
-            analysisSource = 'FALLBACK';
+            analysisSource = 'CLASSIC';
         }
 
         const evaluation = await Evaluation.create({ user: req.user.id, answerText, feedback: aiFeedback, score: aiScore });

@@ -579,7 +579,7 @@ export default function TextInterviewPage() {
                         value={answerText}
                         onChange={e => setAnswerText(e.target.value)}
                         disabled={loading}
-                        placeholder="Type your answer here… Be as detailed and specific as possible. Groq AI will evaluate your response."
+                        placeholder="Type your answer here… Be as detailed and specific as possible. AI will evaluate your response."
                         style={{
                             flex: 1,
                             width: '100%',
@@ -610,10 +610,10 @@ export default function TextInterviewPage() {
                                 background: 'rgba(16,185,129,.1)', border: '1px solid rgba(16,185,129,.3)',
                                 color: '#10b981', fontSize: '0.72rem', fontWeight: 600,
                             }}>
-                                <FiZap size={11} /> Groq AI Active
+                                <FiZap size={11} /> AI Active
                             </span>
                         )}
-                        {lastSource === 'FALLBACK' && (
+                        {lastSource === 'CLASSIC' && (
                             <span style={{
                                 display: 'inline-flex', alignItems: 'center', gap: '5px',
                                 padding: '3px 10px', borderRadius: '20px',
@@ -660,7 +660,7 @@ export default function TextInterviewPage() {
                             }}
                         >
                             {loading ? (
-                                <><span className="spinner-border spinner-border-sm me-1" /> Evaluating with Groq AI…</>
+                                <><span className="spinner-border spinner-border-sm me-1" /> Evaluating with AI…</>
                             ) : isLast ? (
                                 <><FiCheckCircle size={17} /> Submit &amp; See Results</>
                             ) : (

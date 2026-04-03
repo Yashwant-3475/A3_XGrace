@@ -99,7 +99,7 @@ const HomePage = () => {
                                 </div>
                                 <h3 className="feature-heading">AI Text Interview</h3>
                                 <p className="feature-description">
-                                    Answer open-ended questions and get scored and evaluated in real-time by Groq AI.
+                                    Answer open-ended questions and get scored and evaluated in real-time by AI.
                                 </p>
                             </div>
                         </div>

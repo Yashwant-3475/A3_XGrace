@@ -136,7 +136,7 @@ const InterviewRolePage = () => {
                                             <FiCpu size={48} />
                                         </div>
                                         <h4 className="fw-bold mb-2">AI Text Interview</h4>
-                                        <p className="text-muted small mb-3">Type your answers — Groq AI evaluates and gives feedback</p>
+                                        <p className="text-muted small mb-3">Type your answers — AI evaluates and gives feedback</p>
                                         <span className="badge" style={{ background: 'rgba(139,92,246,0.15)', color: '#8b5cf6', padding: '6px 14px', borderRadius: '20px' }}>✨ AI Powered</span>
                                     </div>
                                 </div>
@@ -336,7 +336,7 @@ const InterviewRolePage = () => {
                                 </div>
                                 <h5 className="fw-bold mb-2">Ready to start your AI Text Interview?</h5>
                                 <p className="text-muted small mb-4">
-                                    Role: <strong>{getSelectedRoleData()?.name}</strong> — You'll answer 5 open-ended questions and Groq AI will evaluate each answer.
+                                    Role: <strong>{getSelectedRoleData()?.name}</strong> — You'll answer 5 open-ended questions and AI will evaluate each answer.
                                 </p>
                                 <button
                                     className="btn btn-lg px-5"

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../api';
+import { toast } from 'react-toastify';
 import {
     FiChevronLeft, FiChevronRight, FiCheckCircle,
     FiVolume2, FiSquare, FiClock, FiAlertTriangle,
@@ -143,18 +144,9 @@ export default function InterviewPage() {
         setAnswers(next);
     }
 
-    async function handleSubmit(forceExceeded = false) {
+    async function doSubmit(isOver) {
         setSubmitting(true);
-        setShowModal(false);
-        const isOver   = forceExceeded || overTime;
-        const elapsed  = getElapsed();
-
-        if (!forceExceeded) {
-            const unanswered = answers.filter(a => a.selectedAnswer === null).length;
-            if (unanswered > 0 && !window.confirm(`${unanswered} question(s) unanswered. Submit anyway?`)) {
-                setSubmitting(false); return;
-            }
-        }
+        const elapsed = getElapsed();
         try {
             const res = await api.post('/interview/submit', { sessionId, answers });
             navigate('/interview/report', {
@@ -172,9 +164,68 @@ export default function InterviewPage() {
                 },
             });
         } catch (err) {
-            alert(err.response?.data?.message || 'Submit failed. Try again.');
+            toast.error(err.response?.data?.message || 'Submit failed. Try again.');
             setSubmitting(false);
         }
+    }
+
+    function handleSubmit(forceExceeded = false) {
+        setShowModal(false);
+        const isOver = forceExceeded || overTime;
+
+        if (!forceExceeded) {
+            const unanswered = answers.filter(a => a.selectedAnswer === null).length;
+            if (unanswered > 0) {
+                toast.warn(
+                    ({ closeToast }) => (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600, fontSize: '0.95rem' }}>
+                                <FiAlertTriangle size={18} />
+                                {unanswered} question{unanswered > 1 ? 's' : ''} unanswered
+                            </div>
+                            <p style={{ margin: 0, fontSize: '0.82rem', opacity: 0.85, lineHeight: 1.5 }}>
+                                Are you sure you want to submit without answering all questions?
+                            </p>
+                            <div style={{ display: 'flex', gap: '8px', marginTop: '2px' }}>
+                                <button
+                                    onClick={() => { closeToast(); doSubmit(isOver); }}
+                                    style={{
+                                        flex: 1, padding: '8px 0', borderRadius: '8px', border: 'none',
+                                        background: 'linear-gradient(135deg,#f59e0b,#d97706)',
+                                        color: '#fff', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer',
+                                    }}
+                                >Submit Anyway</button>
+                                <button
+                                    onClick={closeToast}
+                                    style={{
+                                        flex: 1, padding: '8px 0', borderRadius: '8px',
+                                        border: '1.5px solid rgba(255,255,255,.2)', background: 'transparent',
+                                        color: '#e2e8f0', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer',
+                                    }}
+                                >Go Back</button>
+                            </div>
+                        </div>
+                    ),
+                    {
+                        autoClose: false,
+                        closeOnClick: false,
+                        draggable: false,
+                        closeButton: false,
+                        position: 'top-center',
+                        style: {
+                            background: '#1c1c2e',
+                            border: '1px solid rgba(245,158,11,0.3)',
+                            borderRadius: '14px',
+                            boxShadow: '0 16px 48px rgba(0,0,0,0.5)',
+                            minWidth: '340px',
+                        },
+                    }
+                );
+                return;
+            }
+        }
+
+        doSubmit(isOver);
     }
 
     /* ── Render ── */
