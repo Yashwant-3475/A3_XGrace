@@ -51,7 +51,7 @@ const generatePDF = (item) => {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   doc.setTextColor(100, 100, 120);
-  doc.text(`Analyzed: ${new Date(item.createdAt).toLocaleString()}   |   Source: ${item.analysisSource}`, M, y);
+  doc.text(`Analyzed: ${new Date(item.createdAt).toLocaleString()}   |   Source: ${item.analysisSource === 'AI' ? 'AI' : 'Classic'}`, M, y);
   nextLine(10);
 
   // ── Section helper ──
@@ -208,7 +208,7 @@ const HistoryPanel = ({ history, onDelete }) => {
                       <p className="rh-item__date">{formatDate(item.createdAt)}</p>
                     </div>
                     <span className={`rh-item__badge rh-item__badge--${item.analysisSource === 'AI' ? 'ai' : 'classic'}`}>
-                      {item.analysisSource}
+                      {item.analysisSource === 'AI' ? 'AI' : 'CLASSIC'}
                     </span>
                     <button
                       className="rh-btn-delete"

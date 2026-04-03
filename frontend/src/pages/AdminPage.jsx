@@ -1004,7 +1004,7 @@ const SessionsLogSubTab = ({ token }) => {
                                                                     <div className="ai-qa-answer"><strong>Answer:</strong> {ans.answerText || <em style={{ color: '#9ca3af' }}>No answer provided</em>}</div>
                                                                     <div className="ai-qa-meta">
                                                                         <span className="ai-qa-score">Score: {ans.score}/10</span>
-                                                                        <span className="ai-qa-source">{ans.analysisSource === 'CLASSIC' ? '📋 Classic' : '🤖 AI'}</span>
+                                                                        <span className="ai-qa-source">{ans.analysisSource === 'AI' ? '🤖 AI' : '📋 Classic'}</span>
                                                                         <span className="ai-qa-feedback">{ans.feedback}</span>
                                                                     </div>
                                                                 </div>

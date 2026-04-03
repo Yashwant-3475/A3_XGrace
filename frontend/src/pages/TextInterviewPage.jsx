@@ -613,7 +613,7 @@ export default function TextInterviewPage() {
                                 <FiZap size={11} /> AI Active
                             </span>
                         )}
-                        {lastSource === 'CLASSIC' && (
+                        {lastSource && lastSource !== 'AI' && (
                             <span style={{
                                 display: 'inline-flex', alignItems: 'center', gap: '5px',
                                 padding: '3px 10px', borderRadius: '20px',
