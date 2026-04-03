@@ -1,7 +1,103 @@
 /* =====================================================
+   Resume Analyzer Page Layout
+   ===================================================== */
+
+/* ── Page wrapper ── */
+.resume-analyzer-page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0.5rem 0 2rem;
+}
+
+/* ── Compact Page Header ── */
+.resume-page-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.resume-page-header__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  box-shadow: 0 0 16px rgba(124, 58, 237, 0.4);
+  flex-shrink: 0;
+}
+
+.resume-page-header__title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0 0 0.1rem;
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.resume-page-header__sub {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.45);
+  margin: 0;
+}
+
+/* ── Top Two-Column Grid: Guidelines | Dropzone ── */
+.resume-top-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 1.25rem;
+  margin-bottom: 0;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .resume-top-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Guidelines Panel (left column) ── */
+.resume-instructions-panel {
+  background: rgba(124, 58, 237, 0.07);
+  border: 1px solid rgba(124, 58, 237, 0.22);
+  border-radius: 14px;
+  padding: 1.1rem 1.25rem;
+  height: 100%;
+}
+
+.resume-instructions-title {
+  font-weight: 700;
+  color: #a78bfa;
+  margin-bottom: 0.85rem;
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  letter-spacing: 0.01em;
+}
+
+/* Vertical list layout for the left column */
+.resume-instructions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+/* ── Upload Panel (right column) ── */
+.resume-upload-panel {
+  background: linear-gradient(160deg, rgba(20, 10, 40, 0.9), rgba(12, 6, 24, 0.95));
+  border: 1px solid rgba(124, 58, 237, 0.2);
+  border-radius: 14px;
+  padding: 1.25rem;
+  backdrop-filter: blur(12px);
+}
+
+/* =====================================================
    Resume History Panel
    Matches the dark premium purple palette.
    ===================================================== */
+
 
 /* ── Panel wrapper ─────────────────────────────────── */
 .rh-panel {
@@ -242,6 +338,37 @@
 .rh-btn-download:active {
   transform: translateY(0);
 }
+
+/* ── Delete button ─────────────────────────────────── */
+.rh-btn-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: transparent;
+  color: rgba(252, 165, 165, 0.7);
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+  flex-shrink: 0;
+  margin-left: 0.5rem;
+}
+
+.rh-btn-delete:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.55);
+  transform: scale(1.1);
+}
+
+.rh-btn-delete:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 
 /* ── Empty state ───────────────────────────────────── */
 .rh-empty {

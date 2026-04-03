@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
@@ -31,6 +31,12 @@ const LoginPage = () => {
     const [serverError, setServerError] = useState('');
     const [loading, setLoading] = useState(false);
     const [googleLoading, setGoogleLoading] = useState(false);
+
+    // Lock body scroll while on this page to remove the side scrollbar
+    useEffect(() => {
+        document.body.style.overflow = 'hidden';
+        return () => { document.body.style.overflow = ''; };
+    }, []);
 
     // ── Google Sign-In handler ──────────────────────────────
     const handleGoogleSuccess = async (credentialResponse) => {

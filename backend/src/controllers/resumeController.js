@@ -123,7 +123,34 @@ const getResumeHistory = async (req, res) => {
   }
 };
 
+// @route   DELETE /api/resume/history/:id
+// @desc    Delete a single resume history record (must belong to logged-in user)
+// @access  Private
+const deleteResumeRecord = async (req, res) => {
+  try {
+    const record = await Resume.findById(req.params.id);
+
+    if (!record) {
+      return res.status(404).json({ message: 'Resume record not found.' });
+    }
+
+    // Security: ensure the record belongs to the requesting user
+    if (record.userId.toString() !== req.user.id.toString()) {
+      return res.status(403).json({ message: 'Not authorised to delete this record.' });
+    }
+
+    await Resume.findByIdAndDelete(req.params.id);
+    console.log(`🗑️  Resume record ${req.params.id} deleted by user ${req.user.id}`);
+
+    return res.status(200).json({ message: 'Resume record deleted successfully.' });
+  } catch (error) {
+    console.error('❌ Delete resume record error:', error.message);
+    return res.status(500).json({ message: 'Failed to delete resume record.' });
+  }
+};
+
 module.exports = {
   analyzeResume,
   getResumeHistory,
+  deleteResumeRecord,
 };

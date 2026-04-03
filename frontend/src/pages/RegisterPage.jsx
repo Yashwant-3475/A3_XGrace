@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { FiUserPlus, FiMail, FiLock, FiUser } from 'react-icons/fi';
@@ -36,6 +36,12 @@ const RegisterPage = () => {
     const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
     const [googleLoading, setGoogleLoading] = useState(false);
+
+    // Lock body scroll while on this page to remove the side scrollbar
+    useEffect(() => {
+        document.body.style.overflow = 'hidden';
+        return () => { document.body.style.overflow = ''; };
+    }, []);
 
     // ── Google Sign-In handler (auto-registers new users) ──
     const handleGoogleSuccess = async (credentialResponse) => {

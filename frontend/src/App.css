@@ -174,10 +174,9 @@
    APP CONTENT WRAPPER
    ============================================= */
 .app-content {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 1.5rem 1.5rem 3rem;
   width: 100%;
+  padding: 1.5rem 2rem 3rem;
+  box-sizing: border-box;
 }
 
 /* =============================================
@@ -204,13 +203,13 @@
 }
 
 .app-navbar__inner {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 1.5rem;
+  width: 100%;
+  padding: 0 2rem;
   height: 64px;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  box-sizing: border-box;
 }
 
 /* --- Brand --- */

@@ -12,6 +12,12 @@ const ProfilePage = () => {
     const { user, token, updateUser } = useAuth();
     const isGoogleUser = user?.provider === 'google';
 
+    // Lock body scroll while on this page (removes the side scrollbar)
+    useEffect(() => {
+        document.body.style.overflow = 'hidden';
+        return () => { document.body.style.overflow = ''; };
+    }, []);
+
     // --- Account Info state ---
     const [name, setName] = useState(user?.name || '');
     const [savingName, setSavingName] = useState(false);

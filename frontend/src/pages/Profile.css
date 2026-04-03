@@ -1,60 +1,84 @@
 /* =====================================================
-   Profile Page Styles
-   Matches the dark premium theme used across the app.
+   Profile Page — Premium Dark UI
    ===================================================== */
 
 .profile-page {
-  min-height: 100vh;
-  padding: 2.5rem 1.5rem 4rem;
-  padding-top: calc(64px + 2rem); /* clear sticky navbar (64px) + breathing room */
-  max-width: 900px;
+  /*
+   * Exact available height: viewport minus navbar (64px)
+   * minus app-content padding (top: 1.5rem + bottom: 3rem = 4.5rem)
+   */
+  height: calc(100vh - 64px - 4.5rem);
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem 0 0;
+  max-width: 960px;
   margin: 0 auto;
+  overflow: hidden;
 }
 
-/* ── Header ── */
+/* ── Header ─────────────────────────────────────────── */
 .profile-header {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
-  margin-bottom: 2.5rem;
-  padding: 2rem;
-  background: linear-gradient(135deg, rgba(111, 45, 189, 0.15), rgba(30, 16, 48, 0.8));
-  border: 1px solid rgba(111, 45, 189, 0.3);
+  gap: 1.25rem;
+  margin-bottom: 1rem;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.14), rgba(14, 8, 30, 0.85));
+  border: 1px solid rgba(124, 58, 237, 0.28);
   border-radius: 16px;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(14px);
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
+/* Subtle top-edge glow line */
+.profile-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(167, 139, 250, 0.6), rgba(6, 182, 212, 0.4), transparent);
+  border-radius: 999px;
+}
+
+/* ── Avatar ── */
 .profile-avatar-lg {
-  width: 72px;
-  height: 72px;
+  width: 54px;
+  height: 54px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6f2dbd, #9b5de5);
+  background: linear-gradient(135deg, #7c3aed, #a855f7, #06b6d4);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: 1.5rem;
+  font-weight: 800;
   color: #fff;
   flex-shrink: 0;
-  box-shadow: 0 0 24px rgba(111, 45, 189, 0.5);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.25), 0 0 20px rgba(124, 58, 237, 0.4);
+  font-family: 'Outfit', sans-serif;
 }
 
 .profile-header-info {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.2rem;
 }
 
 .profile-title {
-  font-size: 1.6rem;
-  font-weight: 700;
+  font-size: 1.45rem;
+  font-weight: 800;
   color: #f0e6ff;
   margin: 0;
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: -0.02em;
 }
 
 .profile-subtitle {
-  font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.88rem;
+  color: rgba(255, 255, 255, 0.45);
   margin: 0;
 }
 
@@ -62,21 +86,24 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  margin-top: 0.4rem;
-  padding: 0.3rem 0.75rem;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  margin-top: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.13);
   border-radius: 99px;
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
   width: fit-content;
 }
 
-/* ── Cards Grid ── */
+/* ── Cards Grid ─────────────────────────────────────── */
 .profile-cards {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
+  gap: 1rem;
+  flex: 1;       /* fill remaining height in the flex column */
+  min-height: 0; /* critical — allows grid to shrink below content size */
+  overflow: hidden;
 }
 
 @media (max-width: 680px) {
@@ -86,54 +113,77 @@
 }
 
 .profile-card {
-  background: linear-gradient(160deg, rgba(30, 16, 48, 0.95), rgba(20, 10, 36, 0.98));
-  border: 1px solid rgba(111, 45, 189, 0.25);
+  background: linear-gradient(160deg, rgba(20, 10, 40, 0.96), rgba(12, 6, 24, 0.98));
+  border: 1px solid rgba(124, 58, 237, 0.22);
   border-radius: 16px;
-  padding: 1.75rem;
-  backdrop-filter: blur(12px);
-  transition: border-color 0.2s ease;
+  padding: 1.1rem 1.35rem;
+  backdrop-filter: blur(14px);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(167, 139, 250, 0.35), transparent);
 }
 
 .profile-card:hover {
-  border-color: rgba(111, 45, 189, 0.5);
+  border-color: rgba(124, 58, 237, 0.45);
+  box-shadow: 0 8px 32px rgba(124, 58, 237, 0.12);
 }
 
+/* ── Card Header ── */
 .profile-card__header {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  margin-bottom: 1.5rem;
-  color: #9b5de5;
+  gap: 0.55rem;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid rgba(124, 58, 237, 0.15);
+  color: #a78bfa;
+  flex-shrink: 0;
 }
 
 .profile-card__header h2 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #f0e6ff;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #e2d9f3;
   margin: 0;
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: 0.01em;
 }
 
 /* ── Form ── */
 .profile-form {
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
+  gap: 0.65rem;
+  flex: 1;
 }
 
 .profile-field {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.3rem;
 }
 
 .profile-field label {
-  font-size: 0.82rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(196, 181, 253, 0.7);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
 
+/* ── Input Wrapper ── */
 .profile-input-wrap {
   position: relative;
   display: flex;
@@ -142,33 +192,39 @@
 
 .profile-input-icon {
   position: absolute;
-  left: 0.85rem;
-  color: rgba(155, 93, 229, 0.7);
+  left: 0.8rem;
+  color: rgba(167, 139, 250, 0.6);
   pointer-events: none;
   z-index: 1;
 }
 
 .profile-input {
   width: 100%;
-  padding: 0.65rem 0.85rem 0.65rem 2.4rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(111, 45, 189, 0.3);
+  padding: 0.45rem 0.85rem 0.45rem 2.2rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(124, 58, 237, 0.25);
   border-radius: 10px;
   color: #f0e6ff;
-  font-size: 0.95rem;
+  font-size: 0.875rem;
   font-family: inherit;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
   box-sizing: border-box;
+}
+
+.profile-input:hover {
+  border-color: rgba(167, 139, 250, 0.4);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .profile-input:focus {
   outline: none;
-  border-color: #9b5de5;
-  box-shadow: 0 0 0 3px rgba(111, 45, 189, 0.2);
+  border-color: rgba(124, 58, 237, 0.7);
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
 }
 
 .profile-input--disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
@@ -178,10 +234,10 @@
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   padding: 0;
   line-height: 1;
-  opacity: 0.6;
+  opacity: 0.5;
   transition: opacity 0.2s;
 }
 
@@ -190,8 +246,8 @@
 }
 
 .profile-hint {
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.73rem;
+  color: rgba(255, 255, 255, 0.35);
 }
 
 .profile-hint--error {
@@ -203,28 +259,52 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.7rem 1.4rem;
-  background: linear-gradient(135deg, #6f2dbd, #9b5de5);
+  gap: 0.45rem;
+  padding: 0.5rem 1.25rem;
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
   border: none;
   border-radius: 10px;
   color: #fff;
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: 'Outfit', sans-serif;
   cursor: pointer;
   transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
   width: 100%;
-  margin-top: 0.25rem;
+  margin-top: auto;
+  padding-top: 0.5rem;
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.3);
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.profile-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+  transition: left 0.4s ease;
+}
+
+.profile-btn:hover:not(:disabled)::after {
+  left: 100%;
 }
 
 .profile-btn:hover:not(:disabled) {
-  opacity: 0.9;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(111, 45, 189, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.45);
+}
+
+.profile-btn:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .profile-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
@@ -234,40 +314,40 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 1.5rem 1rem;
-  gap: 0.6rem;
+  padding: 1rem 1rem 0.5rem;
+  gap: 0.5rem;
 }
 
 .profile-google-notice__icon {
-  color: rgba(111, 45, 189, 0.5);
-  margin-bottom: 0.5rem;
+  color: rgba(124, 58, 237, 0.5);
+  margin-bottom: 0.25rem;
 }
 
 .profile-google-notice__title {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
   color: #f0e6ff;
   margin: 0;
 }
 
 .profile-google-notice__desc {
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.45);
   margin: 0;
   line-height: 1.5;
 }
 
 .profile-google-notice__link {
-  margin-top: 0.5rem;
-  color: #9b5de5;
-  font-size: 0.85rem;
+  margin-top: 0.4rem;
+  color: #a78bfa;
+  font-size: 0.83rem;
   text-decoration: none;
-  border-bottom: 1px solid rgba(155, 93, 229, 0.4);
+  border-bottom: 1px solid rgba(167, 139, 250, 0.35);
   padding-bottom: 1px;
   transition: color 0.2s, border-color 0.2s;
 }
 
 .profile-google-notice__link:hover {
-  color: #c084fc;
-  border-color: rgba(192, 132, 252, 0.6);
+  color: #c4b5fd;
+  border-color: rgba(196, 181, 253, 0.6);
 }

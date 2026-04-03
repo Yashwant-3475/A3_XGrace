@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
 import api from '../api';
+import { toast } from 'react-toastify';
 import {
   FiFileText, FiUpload, FiCheckCircle, FiXCircle,
   FiAlertCircle, FiInfo, FiTrash2, FiFile,
@@ -142,10 +143,24 @@ const generatePDF = (item) => {
 /* ════════════════════════════════════════════════════════
    HISTORY PANEL component
    ════════════════════════════════════════════════════════ */
-const HistoryPanel = ({ history }) => {
+const HistoryPanel = ({ history, onDelete }) => {
   const [open, setOpen] = useState(true);
+  const [deletingId, setDeletingId] = useState(null);
 
   if (!history || history.length === 0) return null;
+
+  const handleDelete = async (id) => {
+    setDeletingId(id);
+    try {
+      await api.delete(`/resume/history/${id}`);
+      onDelete(id);
+      toast.success('Resume record deleted.');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete record.');
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const formatDate = (iso) =>
     new Date(iso).toLocaleDateString('en-IN', {
@@ -195,6 +210,16 @@ const HistoryPanel = ({ history }) => {
                     <span className={`rh-item__badge rh-item__badge--${item.analysisSource === 'AI' ? 'ai' : 'fallback'}`}>
                       {item.analysisSource}
                     </span>
+                    <button
+                      className="rh-btn-delete"
+                      onClick={() => handleDelete(item._id)}
+                      disabled={deletingId === item._id}
+                      title="Delete this record"
+                    >
+                      {deletingId === item._id
+                        ? <span className="spinner-border spinner-border-sm" role="status" />
+                        : <FiTrash2 size={14} />}
+                    </button>
                   </div>
 
                   {/* Skill count chips */}
@@ -352,6 +377,11 @@ const ResumeAnalyzerPage = () => {
     }
   };
 
+  /* ── Delete a history record ── */
+  const handleDeleteRecord = (id) => {
+    setHistory((prev) => prev.filter((item) => item._id !== id));
+  };
+
   const formatBytes = (bytes) => {
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -359,25 +389,37 @@ const ResumeAnalyzerPage = () => {
   };
 
   return (
-    <div className="row justify-content-center mt-4">
-      <div className="col-md-10 col-lg-9">
+    <div className="resume-analyzer-page">
 
-        {/* ---- Header ---- */}
-        <div className="text-center mb-4">
-          <div className="d-inline-block p-3 rounded-circle mb-3" style={{ background: 'var(--primary-color)' }}>
-            <FiFileText size={32} color="white" />
-          </div>
-          <h2 className="fw-bold gradient-text">Resume Analyzer</h2>
-          <p className="text-muted">Upload your resume to get instant skill analysis</p>
+      {/* ── Compact Header ── */}
+      <div className="resume-page-header">
+        <div className="resume-page-header__icon">
+          <FiFileText size={24} color="white" />
         </div>
+        <div>
+          <h2 className="resume-page-header__title gradient-text">Resume Analyzer</h2>
+          <p className="resume-page-header__sub">Upload your resume to get instant AI-powered skill analysis</p>
+        </div>
+      </div>
 
-        {/* ---- Upload Guidelines ---- */}
-        <div className="resume-instructions-panel mb-4">
+      {/* ── Error Alert ── */}
+      {error && (
+        <div className="alert alert-danger d-flex align-items-center mb-3">
+          <FiAlertCircle className="me-2 flex-shrink-0" size={18} />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {/* ── TOP ROW: Guidelines LEFT + Dropzone RIGHT ── */}
+      <div className="resume-top-grid">
+
+        {/* Left: Upload Guidelines */}
+        <div className="resume-instructions-panel">
           <h6 className="resume-instructions-title">
-            <FiInfo size={16} className="me-2" />
+            <FiInfo size={15} className="me-2" />
             Upload Guidelines
           </h6>
-          <div className="resume-instructions-grid">
+          <div className="resume-instructions-list">
             <div className="resume-instruction-item">
               <span className="resume-instruction-icon">📄</span>
               <div><strong>File Format</strong><p>PDF only (.pdf)</p></div>
@@ -397,159 +439,150 @@ const ResumeAnalyzerPage = () => {
           </div>
         </div>
 
-        {/* ---- Error Alert ---- */}
-        {error && (
-          <div className="alert alert-danger d-flex align-items-center mb-4">
-            <FiAlertCircle className="me-2 flex-shrink-0" size={20} />
-            <span>{error}</span>
+        {/* Right: Upload Dropzone */}
+        <div className="resume-upload-panel">
+          <form onSubmit={handleSubmit}>
+            <div
+              className={`resume-dropzone${dragOver ? ' resume-dropzone--active' : ''}${file ? ' resume-dropzone--has-file' : ''}`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onClick={() => !file && fileInputRef.current?.click()}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && !file && fileInputRef.current?.click()}
+            >
+              {file ? (
+                <div className="resume-file-preview">
+                  <div className="resume-file-icon"><FiFile size={32} /></div>
+                  <div className="resume-file-info">
+                    <p className="resume-file-name">{file.name}</p>
+                    <p className="resume-file-meta">{formatBytes(file.size)}&nbsp;&bull;&nbsp;PDF Document</p>
+                  </div>
+                  <button
+                    type="button"
+                    className="resume-file-clear"
+                    onClick={(e) => { e.stopPropagation(); clearFile(); }}
+                    title="Remove file"
+                  >
+                    <FiTrash2 size={18} />
+                  </button>
+                </div>
+              ) : (
+                <div className="resume-dropzone-placeholder">
+                  <div className="resume-dropzone-icon"><FiUpload size={28} /></div>
+                  <p className="resume-dropzone-primary">Drag &amp; drop your PDF here</p>
+                  <p className="resume-dropzone-secondary">or <span className="resume-dropzone-browse">browse to upload</span></p>
+                  <p className="resume-dropzone-hint">PDF only &bull; Max {MAX_SIZE_MB} MB</p>
+                </div>
+              )}
+            </div>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              id="resumeFile"
+              accept={ALLOWED_EXT}
+              className="d-none"
+              onChange={handleFileChange}
+              disabled={loading}
+            />
+
+            <button
+              type="submit"
+              className="btn btn-primary w-100 d-flex align-items-center justify-content-center mt-3"
+              disabled={loading || !file}
+            >
+              {loading ? (
+                <>
+                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />
+                  Analyzing…
+                </>
+              ) : (
+                <>
+                  <FiFileText className="me-2" size={18} />
+                  Analyze Resume
+                </>
+              )}
+            </button>
+          </form>
+        </div>
+      </div>
+
+      {/* ── Analysis Results ── */}
+      {analysis && (
+        <div className="analysis-results mt-4" style={{ animation: 'fadeIn 0.5s ease' }}>
+          <div className="alert alert-info d-flex align-items-center mb-4">
+            <FiCheckCircle className="me-2 flex-shrink-0" size={22} />
+            <div>
+              <strong>Analysis Type:</strong> {analysis.analysisType}
+              {analysis.note && <div className="small text-muted mt-1">{analysis.note}</div>}
+            </div>
           </div>
-        )}
 
-        {/* ---- Upload Card ---- */}
-        <div className="card shadow-lg border-0 mb-4">
-          <div className="card-body p-4">
-            <form onSubmit={handleSubmit}>
-              <div
-                className={`resume-dropzone${dragOver ? ' resume-dropzone--active' : ''}${file ? ' resume-dropzone--has-file' : ''}`}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                onClick={() => !file && fileInputRef.current?.click()}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => e.key === 'Enter' && !file && fileInputRef.current?.click()}
-              >
-                {file ? (
-                  <div className="resume-file-preview">
-                    <div className="resume-file-icon"><FiFile size={36} /></div>
-                    <div className="resume-file-info">
-                      <p className="resume-file-name">{file.name}</p>
-                      <p className="resume-file-meta">{formatBytes(file.size)}&nbsp;&bull;&nbsp;PDF Document</p>
+          <div className="row">
+            <div className="col-md-6 mb-4">
+              <div className="card border-0 shadow">
+                <div className="card-header text-white" style={{ background: 'var(--primary-color)' }}>
+                  <h5 className="mb-0 d-flex align-items-center">
+                    <FiCheckCircle className="me-2" /> Matched Skills
+                  </h5>
+                </div>
+                <div className="card-body">
+                  {analysis.matchedSkills.length > 0 ? (
+                    <div className="d-flex flex-wrap gap-2">
+                      {analysis.matchedSkills.map((skill, i) => (
+                        <span key={i} className="badge bg-success" style={{ fontSize: '0.9rem', padding: '0.5rem 1rem', fontWeight: 500 }}>
+                          <FiCheckCircle className="me-1" size={14} />{skill}
+                        </span>
+                      ))}
                     </div>
-                    <button
-                      type="button"
-                      className="resume-file-clear"
-                      onClick={(e) => { e.stopPropagation(); clearFile(); }}
-                      title="Remove file"
-                    >
-                      <FiTrash2 size={18} />
-                    </button>
-                  </div>
-                ) : (
-                  <div className="resume-dropzone-placeholder">
-                    <div className="resume-dropzone-icon"><FiUpload size={32} /></div>
-                    <p className="resume-dropzone-primary">Drag &amp; drop your PDF here</p>
-                    <p className="resume-dropzone-secondary">or <span className="resume-dropzone-browse">browse to upload</span></p>
-                    <p className="resume-dropzone-hint">PDF only &bull; Max {MAX_SIZE_MB} MB</p>
-                  </div>
-                )}
+                  ) : (
+                    <p className="text-muted mb-0 d-flex align-items-center">
+                      <FiAlertCircle className="me-2" /> No skills matched.
+                    </p>
+                  )}
+                </div>
               </div>
+            </div>
 
-              <input
-                ref={fileInputRef}
-                type="file"
-                id="resumeFile"
-                accept={ALLOWED_EXT}
-                className="d-none"
-                onChange={handleFileChange}
-                disabled={loading}
-              />
-
-              <button
-                type="submit"
-                className="btn btn-primary btn-lg d-flex align-items-center mt-3"
-                disabled={loading || !file}
-              >
-                {loading ? (
-                  <>
-                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />
-                    Analyzing…
-                  </>
-                ) : (
-                  <>
-                    <FiFileText className="me-2" size={20} />
-                    Analyze Resume
-                  </>
-                )}
-              </button>
-            </form>
+            <div className="col-md-6 mb-4">
+              <div className="card border-0 shadow">
+                <div className="card-header text-white" style={{ background: 'var(--secondary-color)' }}>
+                  <h5 className="mb-0 d-flex align-items-center">
+                    <FiXCircle className="me-2" /> Missing Skills
+                  </h5>
+                </div>
+                <div className="card-body">
+                  {analysis.missingSkills.length > 0 ? (
+                    <div className="d-flex flex-wrap gap-2">
+                      {analysis.missingSkills.map((skill, i) => (
+                        <span key={i} className="badge bg-warning text-dark" style={{ fontSize: '0.9rem', padding: '0.5rem 1rem', fontWeight: 500 }}>
+                          <FiXCircle className="me-1" size={14} />{skill}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted mb-0 d-flex align-items-center">
+                      <FiCheckCircle className="me-2" /> No missing skills found.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
+      )}
 
-        {/* ---- Analysis Results ---- */}
-        {analysis && (
-          <div className="analysis-results" style={{ animation: 'fadeIn 0.5s ease' }}>
-            <div className="alert alert-info d-flex align-items-center mb-4">
-              <FiCheckCircle className="me-2 flex-shrink-0" size={24} />
-              <div>
-                <strong>Analysis Type:</strong> {analysis.analysisType}
-                {analysis.note && <div className="small text-muted mt-1">{analysis.note}</div>}
-              </div>
-            </div>
+      {/* ── Resume History Panel ── */}
+      {historyLoading
+        ? <ResumeHistorySkeleton />
+        : <HistoryPanel history={history} onDelete={handleDeleteRecord} />
+      }
 
-            <div className="row">
-              <div className="col-md-6 mb-4">
-                <div className="card border-0 shadow">
-                  <div className="card-header text-white" style={{ background: 'var(--primary-color)' }}>
-                    <h5 className="mb-0 d-flex align-items-center">
-                      <FiCheckCircle className="me-2" /> Matched Skills
-                    </h5>
-                  </div>
-                  <div className="card-body">
-                    {analysis.matchedSkills.length > 0 ? (
-                      <div className="d-flex flex-wrap gap-2">
-                        {analysis.matchedSkills.map((skill, i) => (
-                          <span key={i} className="badge bg-success" style={{ fontSize: '0.9rem', padding: '0.5rem 1rem', fontWeight: 500 }}>
-                            <FiCheckCircle className="me-1" size={14} />{skill}
-                          </span>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-muted mb-0 d-flex align-items-center">
-                        <FiAlertCircle className="me-2" /> No skills matched.
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="col-md-6 mb-4">
-                <div className="card border-0 shadow">
-                  <div className="card-header text-white" style={{ background: 'var(--secondary-color)' }}>
-                    <h5 className="mb-0 d-flex align-items-center">
-                      <FiXCircle className="me-2" /> Missing Skills
-                    </h5>
-                  </div>
-                  <div className="card-body">
-                    {analysis.missingSkills.length > 0 ? (
-                      <div className="d-flex flex-wrap gap-2">
-                        {analysis.missingSkills.map((skill, i) => (
-                          <span key={i} className="badge bg-warning text-dark" style={{ fontSize: '0.9rem', padding: '0.5rem 1rem', fontWeight: 500 }}>
-                            <FiXCircle className="me-1" size={14} />{skill}
-                          </span>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-muted mb-0 d-flex align-items-center">
-                        <FiCheckCircle className="me-2" /> No missing skills found.
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ---- Resume History Panel ---- */}
-        {historyLoading
-          ? <ResumeHistorySkeleton />
-          : <HistoryPanel history={history} />
-        }
-
-      </div>
     </div>
   );
+
 };
 
 export default ResumeAnalyzerPage;

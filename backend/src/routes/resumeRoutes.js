@@ -2,7 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const authMiddleware = require('../middleware/authMiddleware');
-const { analyzeResume, getResumeHistory } = require('../controllers/resumeController');
+const { analyzeResume, getResumeHistory, deleteResumeRecord } = require('../controllers/resumeController');
 
 const router = express.Router();
 
@@ -25,5 +25,8 @@ router.post('/analyze', authMiddleware, upload.single('resume'), analyzeResume);
 
 // GET /api/resume/history  — Protected: returns last 5 analyses for the user
 router.get('/history', authMiddleware, getResumeHistory);
+
+// DELETE /api/resume/history/:id  — Protected: delete a single history record
+router.delete('/history/:id', authMiddleware, deleteResumeRecord);
 
 module.exports = router;
