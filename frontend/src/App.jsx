@@ -199,6 +199,23 @@ const Navbar = () => {
 };
 
 const App = () => {
+    // Auto-hide scrollbar: show on scroll, hide after 1.2s of inactivity
+    useEffect(() => {
+        let timer;
+        const onScroll = () => {
+            document.documentElement.classList.add('is-scrolling');
+            clearTimeout(timer);
+            timer = setTimeout(() => {
+                document.documentElement.classList.remove('is-scrolling');
+            }, 1200);
+        };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        return () => {
+            window.removeEventListener('scroll', onScroll);
+            clearTimeout(timer);
+        };
+    }, []);
+
     return (
         <>
             <Navbar />

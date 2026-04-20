@@ -261,27 +261,37 @@ const HistoryPage = () => {
                     </div>
 
                     <div className="d-flex justify-content-between align-items-center mt-4">
-                        <button
-                            className="btn btn-outline-primary d-flex align-items-center"
-                            onClick={handlePrevious}
-                            disabled={currentPage === 1 || loading}
-                        >
-                            <FiChevronLeft className="me-1" />
-                            Previous
-                        </button>
+                        {/* Previous button: only render when NOT on page 1 */}
+                        {currentPage > 1 ? (
+                            <button
+                                className="btn btn-outline-primary d-flex align-items-center"
+                                onClick={handlePrevious}
+                                disabled={loading}
+                            >
+                                <FiChevronLeft className="me-1" />
+                                Previous
+                            </button>
+                        ) : (
+                            <div /> /* empty placeholder to keep "Page X of Y" centered */
+                        )}
 
                         <span className="text-muted">
                             Page {currentPage} of {totalPages}
                         </span>
 
-                        <button
-                            className="btn btn-outline-primary d-flex align-items-center"
-                            onClick={handleNext}
-                            disabled={currentPage === totalPages || loading}
-                        >
-                            Next
-                            <FiChevronRight className="ms-1" />
-                        </button>
+                        {/* Next button: only render when NOT on the last page */}
+                        {currentPage < totalPages ? (
+                            <button
+                                className="btn btn-outline-primary d-flex align-items-center"
+                                onClick={handleNext}
+                                disabled={loading}
+                            >
+                                Next
+                                <FiChevronRight className="ms-1" />
+                            </button>
+                        ) : (
+                            <div /> /* empty placeholder to keep layout balanced */
+                        )}
                     </div>
                 </>
             )}

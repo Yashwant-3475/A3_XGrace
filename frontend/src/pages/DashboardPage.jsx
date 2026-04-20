@@ -349,9 +349,10 @@ const DashboardPage = () => {
           <FiCpu className="me-2" size={22} /> AI Interview Performance
         </h4>
         <button
-          className="btn btn-sm btn-outline-secondary"
+          className="btn btn-outline-primary d-flex align-items-center"
           onClick={() => navigate('/ai-history')}
         >
+          <FiList className="me-2" size={18} />
           View Full AI History
         </button>
       </div>
