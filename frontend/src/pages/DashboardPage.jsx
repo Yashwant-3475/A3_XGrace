@@ -16,10 +16,141 @@ import {
 } from 'recharts';
 import { FiTrendingUp, FiTarget, FiCheckCircle, FiVideo, FiFileText, FiCalendar, FiAward, FiList, FiCpu, FiStar } from 'react-icons/fi';
 
+/* ─── Inline styles for the v2 Dark + White design ─── */
+const styles = {
+  page: {
+    minHeight: '100vh',
+    background: 'var(--dark-color)',           // #0a0a1a — full dark navy
+    padding: '1.5rem 0',
+  },
+  headerRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '1.25rem',
+  },
+  pageTitle: {
+    fontSize: '1.5rem',
+    fontWeight: 800,
+    background: 'linear-gradient(135deg, var(--primary-color), var(--secondary-color))',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
+    margin: 0,
+    letterSpacing: '-0.02em',
+  },
+  sectionLabel: {
+    fontSize: '0.7rem',
+    fontWeight: 700,
+    letterSpacing: '0.1em',
+    textTransform: 'uppercase',
+    color: 'var(--text-secondary)',
+    marginBottom: '0.75rem',
+    paddingLeft: '2px',
+  },
+  // White card — pops against dark bg
+  whiteCard: {
+    background: '#ffffff',
+    borderRadius: '14px',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.18)',
+    overflow: 'hidden',
+    transition: 'transform 0.25s ease, box-shadow 0.25s ease',
+  },
+  whiteCardHoverable: {
+    cursor: 'pointer',
+  },
+  // Stat card with purple left border
+  statCard: {
+    background: '#ffffff',
+    borderRadius: '12px',
+    padding: '1.1rem 1.25rem',
+    borderLeft: '4px solid var(--primary-color)',
+    boxShadow: '0 4px 16px rgba(0,0,0,0.14)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    transition: 'transform 0.25s ease, box-shadow 0.25s ease',
+    marginBottom: '1rem',
+  },
+  statLabel: {
+    fontSize: '0.72rem',
+    fontWeight: 600,
+    color: '#6b7280',
+    marginBottom: '0.2rem',
+    letterSpacing: '0.03em',
+    textTransform: 'uppercase',
+  },
+  statValue: {
+    fontSize: '1.55rem',
+    fontWeight: 800,
+    color: '#111827',
+    lineHeight: 1,
+  },
+  statIcon: {
+    color: 'var(--primary-color)',
+    opacity: 0.5,
+  },
+  cardBody: {
+    padding: '1.25rem 1.5rem',
+  },
+  chartTitle: {
+    fontSize: '0.85rem',
+    fontWeight: 700,
+    color: '#111827',
+    marginBottom: '0.75rem',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.4rem',
+  },
+  // Section header row (AI section)
+  sectionHeaderRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '0.75rem',
+    marginTop: '1.75rem',
+  },
+  sectionTitle: {
+    fontSize: '1rem',
+    fontWeight: 800,
+    color: '#8b5cf6',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.4rem',
+    margin: 0,
+  },
+  outlineBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.35rem',
+    padding: '0.4rem 0.9rem',
+    borderRadius: '8px',
+    fontSize: '0.8rem',
+    fontWeight: 600,
+    border: '1.5px solid rgba(124, 58, 237, 0.5)',
+    color: 'var(--primary-color)',
+    background: 'transparent',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    textDecoration: 'none',
+    whiteSpace: 'nowrap',
+  },
+  alertBox: {
+    borderRadius: '10px',
+    padding: '0.75rem 1rem',
+    marginBottom: '1.25rem',
+    fontWeight: 600,
+    fontSize: '0.85rem',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+  },
+};
+
 const DashboardPage = () => {
   const navigate = useNavigate();
   const [results, setResults] = useState([]);
-  const [aiResults, setAiResults] = useState([]);   // AI interview sessions
+  const [aiResults, setAiResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [totalInterviewCount, setTotalInterviewCount] = useState(0);
@@ -28,21 +159,14 @@ const DashboardPage = () => {
     const fetchResults = async () => {
       try {
         const token = localStorage.getItem('authToken');
-
         if (!token) {
           setError('Authentication required. Please login again.');
           setLoading(false);
           return;
         }
-
-        // Use new interview session endpoint
         const response = await axios.get(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/interview/recent`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
-
-        // Transform data to match dashboard format
         const transformedResults = (response.data || []).map(session => ({
           score: session.score,
           totalQuestions: session.totalQuestions,
@@ -51,13 +175,10 @@ const DashboardPage = () => {
           role: session.role,
           skillLevel: session.skillLevel,
         }));
-
         setResults(transformedResults);
         setError('');
       } catch (err) {
         console.error('Error fetching results:', err);
-        console.error('Error response:', err.response?.data);
-        console.error('Error status:', err.response?.status);
         setError('Failed to load performance data.');
       } finally {
         setLoading(false);
@@ -66,7 +187,6 @@ const DashboardPage = () => {
 
     fetchResults();
 
-    // Fetch the real total count from history endpoint
     const fetchTotalCount = async () => {
       try {
         const token = localStorage.getItem('authToken');
@@ -82,7 +202,6 @@ const DashboardPage = () => {
     };
     fetchTotalCount();
 
-    // Fetch recent AI text interview sessions for dashboard
     const fetchAiResults = async () => {
       try {
         const token = localStorage.getItem('authToken');
@@ -99,375 +218,319 @@ const DashboardPage = () => {
     fetchAiResults();
   }, []);
 
-  if (loading) {
-    return <DashboardSkeleton />;
-  }
+  if (loading) return <DashboardSkeleton />;
 
   if (error) {
-    return <div className="alert alert-danger text-center">{error}</div>;
+    return (
+      <div style={{ padding: '2rem', textAlign: 'center', color: '#f87171' }}>
+        {error}
+      </div>
+    );
   }
 
   if (!results.length && !aiResults.length) {
     return (
-      <div className="empty-state">
-        <div className="empty-state-icon">
+      <div style={{ textAlign: 'center', padding: '4rem 1rem' }}>
+        <div style={{ fontSize: '3.5rem', marginBottom: '1rem', opacity: 0.4 }}>
           <FiTrendingUp />
         </div>
-        <h1 className="mb-3 gradient-text">Welcome to Your Dashboard</h1>
-        <p className="lead text-muted mb-4">
+        <h1 style={{ ...styles.pageTitle, WebkitTextFillColor: 'unset', color: '#f1f5f9', marginBottom: '0.75rem' }}>
+          Welcome to Your Dashboard
+        </h1>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: '1.75rem', fontSize: '0.95rem' }}>
           Start your first mock interview to unlock insights and track your progress!
         </p>
-
-        <div className="d-flex justify-content-center gap-3 mt-4 flex-wrap">
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
           <button
-            className="btn btn-success btn-lg d-flex align-items-center"
+            className="btn"
+            style={{ background: 'linear-gradient(135deg, var(--primary-color), var(--secondary-color))', color: '#fff', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
             onClick={() => navigate('/interview')}
           >
-            <FiVideo className="me-2" size={20} />
-            Start Mock Interview
+            <FiVideo size={18} /> Start Mock Interview
           </button>
-
           <button
-            className="btn btn-primary btn-lg d-flex align-items-center"
+            className="btn"
+            style={{ background: 'linear-gradient(135deg, var(--primary-color), var(--secondary-color))', color: '#fff', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
             onClick={() => navigate('/resume-analyzer')}
           >
-            <FiFileText className="me-2" size={20} />
-            Analyze Resume
+            <FiFileText size={18} /> Analyze Resume
           </button>
         </div>
       </div>
     );
   }
 
+  /* ── Derived stats ── */
   const totalInterviews = results.length;
-  const averageAccuracy = Math.round(
-    results.reduce((sum, r) => sum + r.accuracy, 0) / totalInterviews
-  );
-  const bestScore = Math.max(...results.map(r => r.score));
-  const lastInterviewDate = results[0].createdAt
-    ? new Date(results[0].createdAt).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })
+  const averageAccuracy = totalInterviews > 0
+    ? Math.round(results.reduce((sum, r) => sum + r.accuracy, 0) / totalInterviews)
+    : 0;
+  const bestScore = totalInterviews > 0 ? Math.max(...results.map(r => r.score)) : 0;
+  const lastInterviewDate = results[0]?.createdAt
+    ? new Date(results[0].createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
     : 'N/A';
 
   let insightMessage = '';
-  let insightType = 'info';
-
+  let insightBg = '';
+  let insightColor = '';
   if (averageAccuracy > 70) {
-    insightMessage = '🎉 Excellent work! Your accuracy is above 70%. Keep up the great performance!';
-    insightType = 'success';
+    insightMessage = '🎉 Excellent! Accuracy above 70% — keep it up!';
+    insightBg = 'linear-gradient(135deg, #d1fae5, #a7f3d0)';
+    insightColor = '#065f46';
   } else if (averageAccuracy < 50) {
-    insightMessage = '💡 Your accuracy is below 50%. Consider reviewing core concepts and practicing more interviews.';
-    insightType = 'warning';
+    insightMessage = '💡 Accuracy below 50% — review concepts and practice more.';
+    insightBg = 'linear-gradient(135deg, #fef3c7, #fde68a)';
+    insightColor = '#92400e';
   } else {
-    insightMessage = '📈 Good progress! Keep practicing to improve your accuracy above 70%.';
-    insightType = 'info';
+    insightMessage = '📈 Good progress! Keep practicing to push accuracy above 70%.';
+    insightBg = 'linear-gradient(135deg, #dbeafe, #bfdbfe)';
+    insightColor = '#1e40af';
   }
 
-  // AI chart data (score over time, 0-10 scale → multiply by 10 for %)
-  const aiChartData = [...aiResults]
-    .reverse()
-    .map((r, index) => ({
-      name: `#${index + 1}`,
-      avgScore: r.averageScore,
-      percentage: r.percentage,
-    }));
+  /* ── Chart data ── */
+  const chartData = [...results].reverse().map((r, i) => ({
+    name: `#${i + 1}`,
+    score: r.score,
+    accuracy: r.accuracy,
+  }));
+
+  const aiChartData = [...aiResults].reverse().map((r, i) => ({
+    name: `#${i + 1}`,
+    avgScore: r.averageScore,
+    percentage: r.percentage,
+  }));
 
   const aiTotalSessions = aiResults.length;
-  const aiBestScore    = aiTotalSessions > 0 ? Math.max(...aiResults.map(r => r.averageScore)) : 0;
-  const aiAvgScore     = aiTotalSessions > 0
+  const aiBestScore = aiTotalSessions > 0 ? Math.max(...aiResults.map(r => r.averageScore)) : 0;
+  const aiAvgScore = aiTotalSessions > 0
     ? (aiResults.reduce((s, r) => s + r.averageScore, 0) / aiTotalSessions).toFixed(1)
     : 0;
 
-  const chartData = [...results]
-    .reverse()
-    .map((r, index) => ({
-      name: `#${index + 1}`,
-      score: r.score,
-      accuracy: r.accuracy,
-    }));
+  /* Shared tooltip style for white cards */
+  const tooltipStyle = { borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.12)', fontSize: '0.8rem' };
 
   return (
-    <div>
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1 className="gradient-text fw-bold">Performance Dashboard</h1>
+    <div style={styles.page}>
+
+      {/* ── Header ── */}
+      <div style={styles.headerRow}>
+        <h1 style={styles.pageTitle}>Performance Dashboard</h1>
         <button
-          className="btn btn-outline-primary d-flex align-items-center"
+          id="view-all-history-btn"
+          style={styles.outlineBtn}
           onClick={() => navigate('/history')}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(124,58,237,0.1)'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
         >
-          <FiList className="me-2" size={18} />
-          View All History
+          <FiList size={15} /> View All History
         </button>
       </div>
 
-      <div className={`alert alert-${insightType} d-flex align-items-center mb-4`} role="alert">
-        <FiTarget className="me-2" size={20} />
-        <div className="fw-semibold">{insightMessage}</div>
+      {/* ── Insight Alert ── */}
+      <div style={{ ...styles.alertBox, background: insightBg, color: insightColor }}>
+        <FiTarget size={16} />
+        <span>{insightMessage}</span>
       </div>
 
-      <div className="row mb-4">
-        <div className="col-md-3 col-sm-6 mb-3">
-          <div className="card stat-card">
-            <div className="d-flex align-items-center justify-content-between">
-              <div>
-                <h6 className="text-muted mb-1 fw-semibold">Recent Interviews</h6>
-                <h2 className="mb-0 fw-bold" style={{ color: 'var(--primary-color)' }}>
-                  {totalInterviewCount}
-                </h2>
-              </div>
-              <div>
-                <FiVideo size={36} style={{ color: 'var(--primary-color)', opacity: 0.6 }} />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="col-md-3 col-sm-6 mb-3">
-          <div className="card stat-card" style={{ borderLeftColor: 'var(--secondary-color)' }}>
-            <div className="d-flex align-items-center justify-content-between">
-              <div>
-                <h6 className="text-muted mb-1 fw-semibold">Avg Accuracy</h6>
-                <h2 className="mb-0 fw-bold" style={{ color: 'var(--primary-color)' }}>
-                  {averageAccuracy}%
-                </h2>
-              </div>
-              <div>
-                <FiTarget size={36} style={{ color: 'var(--primary-color)', opacity: 0.6 }} />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="col-md-3 col-sm-6 mb-3">
-          <div className="card stat-card" style={{ borderLeftColor: 'var(--primary-color)' }}>
-            <div className="d-flex align-items-center justify-content-between">
-              <div>
-                <h6 className="text-muted mb-1 fw-semibold">Best Score</h6>
-                <h2 className="mb-0 fw-bold" style={{ color: 'var(--primary-color)' }}>
-                  {bestScore}
-                </h2>
-              </div>
-              <div>
-                <FiAward size={36} style={{ color: 'var(--primary-color)', opacity: 0.6 }} />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="col-md-3 col-sm-6 mb-3">
-          <div className="card stat-card" style={{ borderLeftColor: 'var(--secondary-color)' }}>
-            <div className="d-flex align-items-center justify-content-between">
-              <div>
-                <h6 className="text-muted mb-1 fw-semibold">Last Interview</h6>
-                <p className="mb-0 fw-bold" style={{ color: 'var(--dark-color)', fontSize: '0.9rem' }}>
-                  {lastInterviewDate}
-                </p>
-              </div>
-              <div>
-                <FiCalendar size={36} style={{ color: 'var(--secondary-color)', opacity: 0.6 }} />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── MCQ charts (existing) ── */}
-      <div className="card mb-4">
-        <div className="card-body">
-          <h5 className="card-title mb-4 fw-bold d-flex align-items-center">
-            <FiTrendingUp className="me-2" style={{ color: 'var(--primary-color)' }} />
-            MCQ Interview — Score Trend
-          </h5>
-          <div style={{ width: '100%', height: 300 }}>
-            <ResponsiveContainer>
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="name" stroke="#6b7280" />
-                <YAxis stroke="#6b7280" />
-                <Tooltip
-                  contentStyle={{
-                    borderRadius: '8px',
-                    border: 'none',
-                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                  }}
-                />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="score"
-                  stroke="var(--primary-color)"
-                  strokeWidth={3}
-                  name="Score"
-                  dot={{ fill: 'var(--primary-color)', r: 5 }}
-                  activeDot={{ r: 7 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-
-      <div className="card mb-4">
-        <div className="card-body">
-          <h5 className="card-title mb-4 fw-bold d-flex align-items-center">
-            <FiCheckCircle className="me-2" style={{ color: '#10b981' }} />
-            MCQ Interview — Accuracy Trend
-          </h5>
-          <div style={{ width: '100%', height: 300 }}>
-            <ResponsiveContainer>
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="name" stroke="#6b7280" />
-                <YAxis stroke="#6b7280" domain={[0, 100]} />
-                <Tooltip
-                  contentStyle={{
-                    borderRadius: '8px',
-                    border: 'none',
-                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                  }}
-                />
-                <Legend />
-                <Bar
-                  dataKey="accuracy"
-                  fill="#10b981"
-                  name="Accuracy (%)"
-                  radius={[8, 8, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-
-      {/* ════════════════════════════════════════════════════════════════
-           AI TEXT INTERVIEW SECTION
-      ════════════════════════════════════════════════════════════════ */}
-      <div className="d-flex justify-content-between align-items-center mt-5 mb-3">
-        <h4 className="fw-bold d-flex align-items-center mb-0" style={{ color: '#8b5cf6' }}>
-          <FiCpu className="me-2" size={22} /> AI Interview Performance
-        </h4>
-        <button
-          className="btn btn-outline-primary d-flex align-items-center"
-          onClick={() => navigate('/ai-history')}
-        >
-          <FiList className="me-2" size={18} />
-          View Full AI History
-        </button>
-      </div>
-
-      {aiTotalSessions === 0 ? (
-        <div className="card mb-4">
-          <div className="card-body text-center py-5">
-            <FiCpu size={48} className="mb-3" style={{ color: '#8b5cf6', opacity: 0.4 }} />
-            <h5 className="text-muted">No AI interviews yet</h5>
-            <p className="text-muted small">Take an AI-powered text interview to see your performance data here.</p>
-            <button
-              className="btn btn-sm mt-1"
-              style={{ background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', color: '#fff', border: 'none', borderRadius: '10px' }}
-              onClick={() => navigate('/interview')}
+      {/* ── MCQ Stat Cards (4 columns) ── */}
+      <p style={styles.sectionLabel}>MCQ Interview — Overview</p>
+      <div className="row g-3" style={{ marginBottom: '1.25rem' }}>
+        {[
+          { label: 'Total Interviews', value: totalInterviewCount, icon: <FiVideo size={28} style={styles.statIcon} />, accent: 'var(--primary-color)' },
+          { label: 'Avg Accuracy', value: `${averageAccuracy}%`, icon: <FiTarget size={28} style={styles.statIcon} />, accent: 'var(--secondary-color)' },
+          { label: 'Best Score', value: bestScore, icon: <FiAward size={28} style={styles.statIcon} />, accent: 'var(--primary-color)' },
+          { label: 'Last Interview', value: lastInterviewDate, icon: <FiCalendar size={28} style={{ color: 'var(--secondary-color)', opacity: 0.5 }} />, accent: 'var(--secondary-color)', small: true },
+        ].map((s, i) => (
+          <div className="col-md-3 col-sm-6" key={i}>
+            <div
+              style={{ ...styles.statCard, borderLeftColor: s.accent }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 28px rgba(0,0,0,0.2)'; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.14)'; }}
             >
-              <FiCpu size={13} className="me-2" /> Start AI Interview
-            </button>
-          </div>
-        </div>
-      ) : (
-        <>
-          {/* AI Stat Cards */}
-          <div className="row mb-4">
-            <div className="col-md-4 col-sm-6 mb-3">
-              <div className="card stat-card" style={{ borderLeftColor: '#8b5cf6' }}>
-                <div className="d-flex align-items-center justify-content-between">
-                  <div>
-                    <h6 className="text-muted mb-1 fw-semibold">AI Sessions</h6>
-                    <h2 className="mb-0 fw-bold" style={{ color: '#8b5cf6' }}>{aiTotalSessions}</h2>
-                  </div>
-                  <FiCpu size={36} style={{ color: '#8b5cf6', opacity: 0.6 }} />
+              <div>
+                <div style={styles.statLabel}>{s.label}</div>
+                <div style={{ ...styles.statValue, fontSize: s.small ? '1rem' : '1.55rem', color: s.small ? '#374151' : '#111827' }}>
+                  {s.value}
                 </div>
               </div>
-            </div>
-            <div className="col-md-4 col-sm-6 mb-3">
-              <div className="card stat-card" style={{ borderLeftColor: '#8b5cf6' }}>
-                <div className="d-flex align-items-center justify-content-between">
-                  <div>
-                    <h6 className="text-muted mb-1 fw-semibold">Avg AI Score</h6>
-                    <h2 className="mb-0 fw-bold" style={{ color: '#8b5cf6' }}>{aiAvgScore} / 10</h2>
-                  </div>
-                  <FiStar size={36} style={{ color: '#8b5cf6', opacity: 0.6 }} />
-                </div>
-              </div>
-            </div>
-            <div className="col-md-4 col-sm-6 mb-3">
-              <div className="card stat-card" style={{ borderLeftColor: '#8b5cf6' }}>
-                <div className="d-flex align-items-center justify-content-between">
-                  <div>
-                    <h6 className="text-muted mb-1 fw-semibold">Best AI Score</h6>
-                    <h2 className="mb-0 fw-bold" style={{ color: '#8b5cf6' }}>{aiBestScore} / 10</h2>
-                  </div>
-                  <FiAward size={36} style={{ color: '#8b5cf6', opacity: 0.6 }} />
-                </div>
-              </div>
+              {s.icon}
             </div>
           </div>
+        ))}
+      </div>
 
-          {/* AI Score Trend Line Chart */}
-          <div className="card mb-4">
-            <div className="card-body">
-              <h5 className="card-title mb-4 fw-bold d-flex align-items-center">
-                <FiCpu className="me-2" style={{ color: '#8b5cf6' }} />
-                AI Interview — Average Score Trend
-              </h5>
-              <div style={{ width: '100%', height: 300 }}>
+      {/* ── MCQ Charts — Side by Side ── */}
+      <div className="row g-3" style={{ marginBottom: '1.5rem' }}>
+        {/* Score Trend */}
+        <div className="col-md-6">
+          <div style={styles.whiteCard}>
+            <div style={styles.cardBody}>
+              <div style={styles.chartTitle}>
+                <FiTrendingUp style={{ color: 'var(--primary-color)' }} size={16} />
+                MCQ — Score Trend
+              </div>
+              <div style={{ width: '100%', height: 220 }}>
                 <ResponsiveContainer>
-                  <LineChart data={aiChartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis dataKey="name" stroke="#6b7280" />
-                    <YAxis stroke="#6b7280" domain={[0, 10]} />
-                    <Tooltip
-                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
-                    />
-                    <Legend />
+                  <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                    <XAxis dataKey="name" stroke="#9ca3af" tick={{ fontSize: 11 }} />
+                    <YAxis stroke="#9ca3af" tick={{ fontSize: 11 }} />
+                    <Tooltip contentStyle={tooltipStyle} />
+                    <Legend wrapperStyle={{ fontSize: '0.75rem' }} />
                     <Line
                       type="monotone"
-                      dataKey="avgScore"
-                      stroke="#8b5cf6"
-                      strokeWidth={3}
-                      name="Avg Score (/10)"
-                      dot={{ fill: '#8b5cf6', r: 5 }}
-                      activeDot={{ r: 7 }}
+                      dataKey="score"
+                      stroke="var(--primary-color)"
+                      strokeWidth={2.5}
+                      name="Score"
+                      dot={{ fill: 'var(--primary-color)', r: 4 }}
+                      activeDot={{ r: 6 }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* AI Score % Bar Chart */}
-          <div className="card mb-4">
-            <div className="card-body">
-              <h5 className="card-title mb-4 fw-bold d-flex align-items-center">
-                <FiTarget className="me-2" style={{ color: '#8b5cf6' }} />
-                AI Interview — Score Percentage Trend
-              </h5>
-              <div style={{ width: '100%', height: 300 }}>
+        {/* Accuracy Trend */}
+        <div className="col-md-6">
+          <div style={styles.whiteCard}>
+            <div style={styles.cardBody}>
+              <div style={styles.chartTitle}>
+                <FiCheckCircle style={{ color: '#10b981' }} size={16} />
+                MCQ — Accuracy Trend
+              </div>
+              <div style={{ width: '100%', height: 220 }}>
                 <ResponsiveContainer>
-                  <BarChart data={aiChartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis dataKey="name" stroke="#6b7280" />
-                    <YAxis stroke="#6b7280" domain={[0, 100]} />
-                    <Tooltip
-                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
-                    />
-                    <Legend />
-                    <Bar
-                      dataKey="percentage"
-                      fill="#8b5cf6"
-                      name="Score (%)"
-                      radius={[8, 8, 0, 0]}
-                    />
+                  <BarChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                    <XAxis dataKey="name" stroke="#9ca3af" tick={{ fontSize: 11 }} />
+                    <YAxis stroke="#9ca3af" tick={{ fontSize: 11 }} domain={[0, 100]} />
+                    <Tooltip contentStyle={tooltipStyle} />
+                    <Legend wrapperStyle={{ fontSize: '0.75rem' }} />
+                    <Bar dataKey="accuracy" fill="#10b981" name="Accuracy (%)" radius={[6, 6, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ════════════════════════════════════════════════════════════
+           AI TEXT INTERVIEW SECTION
+      ════════════════════════════════════════════════════════════ */}
+      <div style={styles.sectionHeaderRow}>
+        <h4 style={styles.sectionTitle}>
+          <FiCpu size={18} /> AI Interview Performance
+        </h4>
+        <button
+          id="view-ai-history-btn"
+          style={styles.outlineBtn}
+          onClick={() => navigate('/ai-history')}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(124,58,237,0.1)'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+        >
+          <FiList size={15} /> Full AI History
+        </button>
+      </div>
+
+      {aiTotalSessions === 0 ? (
+        <div style={{ ...styles.whiteCard, textAlign: 'center', padding: '2.5rem 1.5rem', marginBottom: '1rem' }}>
+          <FiCpu size={42} style={{ color: '#8b5cf6', opacity: 0.35, marginBottom: '0.75rem' }} />
+          <h6 style={{ color: '#374151', fontWeight: 700, marginBottom: '0.3rem' }}>No AI interviews yet</h6>
+          <p style={{ color: '#6b7280', fontSize: '0.82rem', marginBottom: '1rem' }}>
+            Take an AI-powered text interview to see your performance data here.
+          </p>
+          <button
+            className="btn"
+            style={{ background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', color: '#fff', fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+            onClick={() => navigate('/interview')}
+          >
+            <FiCpu size={14} /> Start AI Interview
+          </button>
+        </div>
+      ) : (
+        <>
+          {/* AI Stat Cards (3 columns) */}
+          <div className="row g-3" style={{ marginBottom: '1.25rem' }}>
+            {[
+              { label: 'AI Sessions', value: aiTotalSessions, icon: <FiCpu size={28} style={{ color: '#8b5cf6', opacity: 0.5 }} /> },
+              { label: 'Avg AI Score', value: `${aiAvgScore} / 10`, icon: <FiStar size={28} style={{ color: '#8b5cf6', opacity: 0.5 }} /> },
+              { label: 'Best AI Score', value: `${aiBestScore} / 10`, icon: <FiAward size={28} style={{ color: '#8b5cf6', opacity: 0.5 }} /> },
+            ].map((s, i) => (
+              <div className="col-md-4 col-sm-6" key={i}>
+                <div
+                  style={{ ...styles.statCard, borderLeftColor: '#8b5cf6' }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 28px rgba(0,0,0,0.2)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.14)'; }}
+                >
+                  <div>
+                    <div style={styles.statLabel}>{s.label}</div>
+                    <div style={{ ...styles.statValue, color: '#8b5cf6' }}>{s.value}</div>
+                  </div>
+                  {s.icon}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* AI Charts — Side by Side */}
+          <div className="row g-3" style={{ marginBottom: '1.5rem' }}>
+            {/* AI Score Trend */}
+            <div className="col-md-6">
+              <div style={styles.whiteCard}>
+                <div style={styles.cardBody}>
+                  <div style={styles.chartTitle}>
+                    <FiCpu style={{ color: '#8b5cf6' }} size={16} />
+                    AI — Avg Score Trend
+                  </div>
+                  <div style={{ width: '100%', height: 220 }}>
+                    <ResponsiveContainer>
+                      <LineChart data={aiChartData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                        <XAxis dataKey="name" stroke="#9ca3af" tick={{ fontSize: 11 }} />
+                        <YAxis stroke="#9ca3af" tick={{ fontSize: 11 }} domain={[0, 10]} />
+                        <Tooltip contentStyle={tooltipStyle} />
+                        <Legend wrapperStyle={{ fontSize: '0.75rem' }} />
+                        <Line
+                          type="monotone"
+                          dataKey="avgScore"
+                          stroke="#8b5cf6"
+                          strokeWidth={2.5}
+                          name="Avg Score (/10)"
+                          dot={{ fill: '#8b5cf6', r: 4 }}
+                          activeDot={{ r: 6 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* AI Score % Bar Chart */}
+            <div className="col-md-6">
+              <div style={styles.whiteCard}>
+                <div style={styles.cardBody}>
+                  <div style={styles.chartTitle}>
+                    <FiTarget style={{ color: '#8b5cf6' }} size={16} />
+                    AI — Score % Trend
+                  </div>
+                  <div style={{ width: '100%', height: 220 }}>
+                    <ResponsiveContainer>
+                      <BarChart data={aiChartData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                        <XAxis dataKey="name" stroke="#9ca3af" tick={{ fontSize: 11 }} />
+                        <YAxis stroke="#9ca3af" tick={{ fontSize: 11 }} domain={[0, 100]} />
+                        <Tooltip contentStyle={tooltipStyle} />
+                        <Legend wrapperStyle={{ fontSize: '0.75rem' }} />
+                        <Bar dataKey="percentage" fill="#8b5cf6" name="Score (%)" radius={[6, 6, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
