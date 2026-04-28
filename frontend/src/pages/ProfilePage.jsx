@@ -4,7 +4,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { FiUser, FiMail, FiLock, FiSave, FiShield } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
-import './Profile.css';
+import '../styles/Profile.css';
 
 const BACKEND_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 

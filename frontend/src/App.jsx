@@ -17,11 +17,11 @@ import TextInterviewPage from './pages/TextInterviewPage.jsx';
 import AiInterviewHistoryPage from './pages/AiInterviewHistoryPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
-import ProtectedRoute from './components/ProtectedRoute';
-import AdminRoute from './components/AdminRoute';
+import ProtectedRoute from './components/common/ProtectedRoute';
+import AdminRoute from './components/common/AdminRoute';
 import AdminPage from './pages/AdminPage.jsx';
 import { FiLogOut, FiLogIn, FiUserPlus, FiFileText, FiVideo, FiBarChart2, FiShield, FiMenu, FiX, FiCpu, FiUser, FiChevronDown } from 'react-icons/fi';
-import './App.css';
+import './styles/App.css';
 
 const Navbar = () => {
     const { isAuthenticated, logout, user } = useAuth();

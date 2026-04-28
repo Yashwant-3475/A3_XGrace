@@ -1,14 +1,14 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { jsPDF } from 'jspdf';
-import api from '../api';
+import api from '../services/api';
 import { toast } from 'react-toastify';
 import {
   FiFileText, FiUpload, FiCheckCircle, FiXCircle,
   FiAlertCircle, FiInfo, FiTrash2, FiFile,
   FiClock, FiDownload, FiChevronDown
 } from 'react-icons/fi';
-import './ResumeHistory.css';
-import { ResumeHistorySkeleton } from '../components/Skeleton';
+import '../styles/ResumeHistory.css';
+import { ResumeHistorySkeleton } from '../components/common/Skeleton';
 
 /* ---- constants ---- */
 const ALLOWED_MIME  = 'application/pdf';

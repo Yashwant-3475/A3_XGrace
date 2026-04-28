@@ -6,7 +6,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
-import './Auth.css';
+import '../styles/Auth.css';
 
 // Yup validation schema for registration
 const registerSchema = Yup.object({

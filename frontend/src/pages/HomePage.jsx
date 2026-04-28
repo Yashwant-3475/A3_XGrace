@@ -1,9 +1,9 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiVideo, FiFileText, FiArrowRight, FiTrendingUp, FiClock, FiCpu, FiVolume2, FiBarChart2, FiUserPlus, FiCheckCircle } from 'react-icons/fi';
-import '../HomePage.css';
+import '../styles/HomePage.css';
 import appLogo from '../assets/app-logo.png';
-import Particles from '../components/Particles';
+import Particles from '../components/common/Particles';
 
 
 const HomePage = () => {

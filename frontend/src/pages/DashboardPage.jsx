@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { DashboardSkeleton } from '../components/Skeleton';
+import { DashboardSkeleton } from '../components/common/Skeleton';
 import {
   ResponsiveContainer,
   LineChart,

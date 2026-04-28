@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import api from '../api';
+import api from '../services/api';
 import {
     FiCpu, FiArrowRight, FiCheckCircle, FiRotateCcw, FiHome,
     FiStar, FiAlertCircle, FiZap, FiVolume2, FiSquare,

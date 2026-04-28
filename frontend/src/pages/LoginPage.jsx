@@ -6,7 +6,7 @@ import { FiLock, FiMail, FiLogIn } from 'react-icons/fi';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { GoogleLogin } from '@react-oauth/google';
-import './Auth.css';
+import '../styles/Auth.css';
 
 // Yup validation schema for login
 const loginSchema = Yup.object({

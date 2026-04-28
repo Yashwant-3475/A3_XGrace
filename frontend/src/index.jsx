@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import './index.css';
+import './styles/index.css';
 import App from './App.jsx';
 import reportWebVitals from './reportWebVitals';
 import { AuthProvider } from './context/AuthContext';

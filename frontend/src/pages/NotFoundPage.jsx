@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { FiAlertTriangle, FiHome, FiArrowLeft } from 'react-icons/fi';
-import './NotFound.css';
+import '../styles/NotFound.css';
 
 const NotFoundPage = () => {
     return (

@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { FiChevronLeft, FiChevronRight, FiFilter, FiCalendar, FiTrendingUp, FiTarget } from 'react-icons/fi';
-import { HistorySkeleton } from '../components/Skeleton';
+import { HistorySkeleton } from '../components/common/Skeleton';
 
 const HistoryPage = () => {
     const navigate = useNavigate();
