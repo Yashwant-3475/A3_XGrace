@@ -1,4 +1,7 @@
-// Hugging Face Inference API for AI-based resume analysis
+// Groq AI for resume analysis (primary) + keyword fallback (secondary)
+
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_MODEL   = 'llama-3.3-70b-versatile';
 
 // Keyword list for fallback analysis
 const SKILL_KEYWORDS = [
@@ -26,19 +29,19 @@ const SKILL_KEYWORDS = [
 ];
 
 /**
- * AI-based resume analysis using Hugging Face Inference API (PRIMARY)
+ * AI-based resume analysis using Groq API (PRIMARY)
  * @param {string} resumeText - Extracted text from resume PDF
  * @returns {Promise<Object>} - Structured analysis object with source: 'AI'
  */
 async function aiAnalyzeResume(resumeText) {
-    if (!process.env.HUGGINGFACE_API_KEY) {
-        throw new Error('Hugging Face API key not configured');
+    if (!process.env.GROQ_API_KEY) {
+        throw new Error('Groq API key not configured');
     }
 
     const prompt = `You are an expert HR analyst. Analyze the following resume and provide a structured analysis in JSON format.
 
 Resume:
-${resumeText}
+${resumeText.substring(0, 3000)}
 
 Provide your analysis in the following JSON format (respond ONLY with valid JSON, no markdown, no code blocks):
 {
@@ -51,56 +54,36 @@ Provide your analysis in the following JSON format (respond ONLY with valid JSON
 }`;
 
     try {
-        // Using Hugging Face Inference API with a text generation model
-        const response = await fetch(
-            'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2',
-            {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    inputs: prompt,
-                    parameters: {
-                        max_new_tokens: 1000,
-                        temperature: 0.7,
-                        return_full_text: false,
-                    },
-                }),
-            }
-        );
+        const response = await fetch(GROQ_API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+            },
+            body: JSON.stringify({
+                model: GROQ_MODEL,
+                messages: [{ role: 'user', content: prompt }],
+                temperature: 0.4,
+                max_tokens: 1024,
+            }),
+        });
 
         if (!response.ok) {
-            throw new Error(
-                `Hugging Face API request failed: ${response.status} ${response.statusText}`
-            );
+            const errText = await response.text();
+            console.warn(`Groq API error ${response.status}: ${errText}`);
+            throw new Error(`Groq returned ${response.status}`);
         }
 
         const result = await response.json();
-
-        // Extract the generated text from response
-        let generatedText = '';
-        if (Array.isArray(result) && result[0]?.generated_text) {
-            generatedText = result[0].generated_text;
-        } else if (result.generated_text) {
-            generatedText = result.generated_text;
-        } else {
-            throw new Error('Unexpected response format from Hugging Face API');
-        }
+        const generatedText = result.choices?.[0]?.message?.content || '{}';
 
         // Parse JSON from the generated text
         let analysisData;
         try {
-            // Try to extract JSON from the response (might have extra text)
             const jsonMatch = generatedText.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-                analysisData = JSON.parse(jsonMatch[0]);
-            } else {
-                throw new Error('No JSON found in response');
-            }
+            analysisData = JSON.parse(jsonMatch ? jsonMatch[0] : generatedText);
         } catch (parseError) {
-            console.error('Failed to parse Hugging Face response as JSON:', generatedText);
+            console.error('Failed to parse Groq response as JSON:', generatedText);
             throw new Error('AI returned invalid JSON');
         }
 
@@ -122,7 +105,7 @@ Provide your analysis in the following JSON format (respond ONLY with valid JSON
             analysisSource: 'AI',
         };
     } catch (error) {
-        console.error('Hugging Face API error:', error.message);
+        console.error('Groq API error:', error.message);
         throw error;
     }
 }
